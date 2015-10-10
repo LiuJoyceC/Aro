@@ -1,12 +1,7 @@
-# Arrow #
+# Swap by Aro #
 
 ## Heading ##
-  > Name the product in a way the reader (i.e. your target customers) will understand.
-  Arrow
-
-## Sub-Heading ##
-  > Describe who the market for the product is and what benefit they get. One sentence only underneath the title.
-  Arrow will point to where you need to go and take you there.
+  > Play Swap with a friend, and get to them before they get to you!
 
 ## Summary ##
   > Give a summary of the product and the benefit. Assume the reader will not read anything else so make this paragraph good.
@@ -21,17 +16,14 @@
   User can create a destination by pin-pointing any GPS location. Arrow will point to that location.
 
 ## Quote from You ##
-  > A quote from a spokesperson in your company.
-  I was once was lost but now I am not.
+  > "We made Swap simple, because it doesn't take a complicated game to have a great time!"
 
 ## How to Get Started ##
   > Describe how easy it is to get started.
   Click on any point on the map to drop a marker there and arrow will guide you there.
 
-## Customer Quote ##
-  > Provide a quote from a hypothetical customer that describes how they experienced the benefit.
-  I traveled across the country without using an actual map.
+## What are people saying about Swap? ##
+  > "Swap is a blast! Once the game starts, it's non-stop action until somebody wins!"
 
-## Closing and Call to Action ##
-  > Wrap it up and give pointers where the reader should go next.
-  Download from app store today.
+## Good times are just a click away! ##
+  > Download Swap now for a fast and easy way to have fun with your friends.
