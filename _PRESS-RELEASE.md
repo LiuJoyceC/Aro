@@ -1,4 +1,4 @@
-# Swap by Aro #
+# AroSwap #
 
 ## Heading ##
   > Play Swap with a friend, and get to them before they get to you!
@@ -26,4 +26,4 @@
   > "Swap is a blast! Once the game starts, it's non-stop action until somebody wins!"
 
 ## Good times are just a click away! ##
-  > Download Swap now for a fast and easy way to have fun with your friends.
+  > Download AroSwap now for a fast and easy way to have fun with your friends.
