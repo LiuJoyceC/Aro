@@ -103,10 +103,14 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
     chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
     publicLen: 4,
     privateLen: 3,
-  }
+  };
+
+  // # of miles from target player must be to acquire it
+  var targetRadius = 0.05;
 
   return {
     codeOptions: codeOptions,
     gameTypes: gameTypes,
+    targetRadius: targetRadius,
   };
 });

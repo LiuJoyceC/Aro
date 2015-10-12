@@ -48,13 +48,13 @@
           <div ng-if="game.notExist">The code you entered does not match a currently available game. Please enter another code, or join a public game, or create a new game.</div>
           <div>Or select an available public game:</div>
           <div>
-            <div ng-hide="publicGames.length">There are currently no public games available to join. Please create a new game or join a private game.</div>
-            <div ng-repeat="publicGame in publicGames">
-              <div>Game type: {{ publicGame.type }}</div>
-              <div>Spots available: {{ publicGame.maxPlayers - publicGame.players.length }}</div>
+            <div ng-if="publicGames.noGames">There are currently no public games available to join. Please create a new game or join a private game.</div>
+            <div ng-repeat="(id, publicGame) in publicGames">
+              <div>Game type: {{ publicGame.gameType }}</div>
+              <!-- <div>Spots available: {{ publicGame.maxPlayers - publicGame.players.length }}</div>
               <div>Additional players needed: {{ publicGame.players.length - publicGame.minPlayers }}</div>
-              <div>Time remaining to join: {{ Math.round(publicGame.startTime - now )}}</div>
-              <input type="submit" value="Join this game!" ng-click="joinGame(false, publicGame.gameID)">
+              <div>Time remaining to join: {{ Math.round(publicGame.startTime - now )}}</div> -->
+              <input type="submit" value="Join this game!" ng-click="joinGame(false, id)">
             </div>
           </div>
         </div>
@@ -63,7 +63,7 @@
 
       <div class="whole-screen" ng-if="hasJoinedGame">
         <div>Are you sure you want to quit the current game?</div>
-        <input type="submit" value="Yes" ng-click="endGame()">
+        <input type="submit" value="Yes" ng-click="endGame(true)">
         <a href="#/tab/compass"><input type="submit" value="No"></a>
       </div>
 

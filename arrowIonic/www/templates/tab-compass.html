@@ -2,13 +2,17 @@
 <!--using 'ion-pane' instead of ion-content is one way to disable scroll in the compass view -->
   <ion-pane>
     <div class="bar bar-header bar-positive">
-      <h1 class="title">{{distance}} miles to your destination</h1>
-      <!-- <h1>{{ receivedmessage }}</h1> -->
+      <h1 class="title" ng-hide="targetAcquired">{{distance}} miles to target {{ targetName }}</h1>
+      <h1 class="title" ng-if="targetAcquired">Target acquired!</h1>
+      <!-- <h1 class="title">Targeting player {{ targetName }}</h1> -->
     </div>
     <div id="circle" style="{{ rotation }}">
       <div id="arrow"></div>
     </div>
-    <div>You are targeting player {{ targetName }}</div>
+
+    <div class="whole-screen" ng-if="winnerMessage">
+      <div>{{ winnerMessage }}</div>
+    </div>
 
     <div class="whole-screen" ng-hide="gameInSession">
       <div ng-if="hasJoinedGame">
