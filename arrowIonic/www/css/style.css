@@ -7,7 +7,8 @@
   margin: 50% auto;
   width:300px;
   height:300px;
-  background-color: #E8ECFA;
+  background-color: #341B1C; /*#C5AC86;*/
+ /* background-color: #E8ECFA;*/
   border-radius: 50%;
 }
 
@@ -16,7 +17,8 @@
   height: 0;
   border-left: 15px solid transparent;
   border-right: 15px solid transparent;
-  border-bottom: 300px solid #002AB3;
+  border-bottom: 300px solid #C5AC86; /*#341B1C*/
+  /*border-bottom: 300px solid #002AB3;*/
   border-radius: 50px;
   margin: auto;
 }
@@ -80,7 +82,7 @@
 }
 
 .whole-screen {
-  background-color: rgb(66, 133, 244);
+  /*background-color: rgb(66, 133, 244);
   color: white;
   font-size: 14px;
   position: absolute;
@@ -89,5 +91,60 @@
   height: 100%;
   width: 100%;
   margin: 0;
+  vertical-align: middle;*/
+  text-align: center;
+}
+
+.app-name {
   vertical-align: middle;
 }
+
+.app-circle {
+  color: #BCD418;
+  background:  #54413A;
+  font-size: 2em;
+  padding: .5em .5em;
+  text-align: center;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  line-height: 175px;
+}
+
+.center {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.new-player {
+  background: ;
+  height: 100%;
+  margin: 30% auto;
+  padding-bottom: 3em;
+}
+
+.new-player-submit label {
+  
+}
+
+.tabs-menu {
+  background: #C8E9F7;
+}
+
+.submit-buttons {
+  color: #BCD418; 
+}
+
+.create-or-join, .choose-to-quit {
+  text-align: center;
+}
+
+.miles-note {
+  background: #BCD420;
+}
+
+.title {
+  color: #341B1C;
+}
+
