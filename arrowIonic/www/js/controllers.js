@@ -141,21 +141,29 @@ angular.module('starter.controllers', [])
   $rootScope.$watch('gameID', function() {
     $scope.gameID = $rootScope.gameID;
   });
+  $rootScope.$watch('gameInSession', function() {
+    $scope.gameInSession = $rootScope.gameInSession;
+  });
 
   socket.on('gameStart', function() {
-    $scope.gameInSession = true;
+    $rootScope.gameInSession = true;
   });
 
   document.addEventListener("deviceready", function () {
+  // will need to test if waiting for deviceready may cause
+  // a problem if the server emits 'newTarget' before deviceready
 
     var here, there, heading, bearing;
 
     $scope.targetLocation = {};
 
-    socket.on('newTarget', function(tuple) {
-      if ($scope.playerName === tuple[0]) {
-        $scope.targetName = tuple[1].playerName;
-        $scope.targetLocation = tuple[1].location;
+    socket.on('newTarget', function(targetsObj) {
+      // using rootScope instead of scope just in case
+      // the scope has not been updated yet
+      var target = targetsObj[$rootScope.playerName];
+      if (target) {
+        $scope.targetName = target.playerName;
+        $scope.targetLocation = target.location;
       }
     });
 
@@ -163,7 +171,7 @@ angular.module('starter.controllers', [])
       if ($scope.PlayerName === winnerName) {
         $scope.winnerMessage = 'Game over. You win!'
       } else {
-        $scope.winnerMessage = 'Game over. ' +winnerName + ' wins!'
+        $scope.winnerMessage = 'Game over. ' + winnerName + ' wins!'
       }
     });
 
@@ -228,7 +236,6 @@ angular.module('starter.controllers', [])
   $scope.gameTypes = options.gameTypes;
   $scope.publicGames = {};
   $scope.createdGame = {};
-  $scope.gameInSession = false;
   $scope.register = {};
   // $scope.now = new Date();
   // setTimeout(function() { $scope.now = new Date(); }, 1000);
@@ -279,6 +286,9 @@ angular.module('starter.controllers', [])
       // can add that in future
     }
 
+    $rootScope.gameID = gameID;
+    $rootScope.playerName = $scope.playerName;
+
     $cordovaGeolocation.getCurrentPosition({timeout: 10000, enableHighAccuracy: true})
     .then(function(currentPosition) {
       $scope.location = {
@@ -305,9 +315,6 @@ angular.module('starter.controllers', [])
       // for now, set to async, but if we change to having any checks
       // on whether gameID exists, then will need to move into callback
       // function for socket.
-      console.log($scope.playerName);
-      $rootScope.gameID = gameID;
-      $rootScope.playerName = $scope.playerName;
       $rootScope.hasJoinedGame = true;
       $scope.hasJoinedGame = true;
       $scope.joining = false;
@@ -316,8 +323,10 @@ angular.module('starter.controllers', [])
     });
   };
 
-  $scope.endGame = function(quit) {
+  // change name to 'quit' to avoid confusion with 'gameEnd'?
+  $scope.endGame = function() { // delete parameter in html
     $rootScope.hasJoinedGame = false;
+    $rootScope.gameInSession = false;
     $scope.hasJoinedGame = false;
     $scope.selectedJoin = false;
     $scope.selectedCreate = false;
@@ -325,9 +334,8 @@ angular.module('starter.controllers', [])
     // player out from the players list for that game
     // (and can notify a player if they are the only one remaining)
     // assume server will do socket.leave(gameID)
-    if (quit) {
-      socket.emit('playerQuit', $scope.playerName);
-    }
+    socket.emit('playerQuit', $scope.playerName);
+
   };
 
 });

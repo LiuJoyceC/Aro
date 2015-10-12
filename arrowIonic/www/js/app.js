@@ -75,7 +75,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/map');
+  $urlRouterProvider.otherwise('/tab/home');
 
 })
 
@@ -99,6 +99,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
     }
   ];
 
+  // make sure publicLen != privateLen
+  // because will cause conflict when checking
+  // for game codes
   var codeOptions = {
     chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
     publicLen: 4,
