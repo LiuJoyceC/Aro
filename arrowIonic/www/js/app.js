@@ -99,9 +99,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
     }
   ];
 
-  // make sure publicLen != privateLen
-  // because will cause conflict when checking
-  // for game codes
   var codeOptions = {
     chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
     publicLen: 4,

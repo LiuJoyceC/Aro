@@ -278,12 +278,15 @@ angular.module('starter.controllers', [])
   $scope.joinGame = function (createNew, gameID) { //gameID only required for existing
     $scope.joining = true;
     if (createNew) {
+      do {
       gameID = '';
-      for (var j = 0; j < codeOptions[$scope.createdGame.isPrivate?'privateLen':'publicLen']; j++) {
-        gameID += chars[Math.floor(Math.random()*chars.length)];
-      }
-      // for now, does not check if this game code already exists
-      // can add that in future
+        for (var j = 0; j < codeOptions[$scope.createdGame.isPrivate?'privateLen':'publicLen']; j++) {
+          gameID += chars[Math.floor(Math.random()*chars.length)];
+        }
+      } while (privateGameCodes[gameID] || $scope.publicGames[gameID]);
+      // checks if already exists
+    } else {
+      gameID = gameID.toUpperCase();
     }
 
     $rootScope.gameID = gameID;
