@@ -1,12 +1,12 @@
-# Arrow
+# AroSwap
 
-> Pithy project description
+> A fun game for friends with phones
 
-## Artemis
+## Team Athena
 
-  - __Product Owner__: Ben Hejkal
-  - __Scrum Master__: Jewels Nocera
-  - __Development Team Members__: Ben, Jewels, Yeon
+  - __Product Owner__: Joyce Liu
+  - __Scrum Master__: Tisha Greenidge
+  - __Development Team Members__: Taylor Hayduk, Rod Machen
 
 ## Table of Contents
 
@@ -20,15 +20,14 @@
 
 ## Usage
 
-> Some usage instructions
+> Available as a mobile app on Android or iOS
 
 ## Requirements
 
-- Node 0.10.x
-- Redis 2.6.x
-- Postgresql 9.1.x
-- etc
-- etc
+- Ionic
+- Socket.io
+- Node
+- Angular
 
 ## Development
 
@@ -44,7 +43,7 @@ bower install
 
 ### Roadmap
 
-View the project roadmap [here](LINK_TO_PROJECT_ISSUES)
+View the project roadmap [here](https://github.com/Athena-News/Aro/issues)
 
 
 ## Contributing
