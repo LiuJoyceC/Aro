@@ -17,15 +17,11 @@
 
     <div class="whole-screen" ng-hide="gameInSession">
       <div ng-if="hasJoinedGame">
-        <div>.</div>
-        <div>.</div>
         <div>Welcome, {{ playerName }}!</div>
         <div>Waiting for more players to join...</div>
         <div>Your game's code is {{ gameID }}. Invite your friends!</div>
       </div>
       <div ng-hide="hasJoinedGame">
-        <div>.</div>
-        <div>.</div>
         <div>You have not joined a game yet.</div>
         <div>Join or create a game on the Home tab.</div>
       </div>

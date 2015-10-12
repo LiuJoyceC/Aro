@@ -142,10 +142,12 @@ angular.module('starter.controllers', [])
     $scope.gameID = $rootScope.gameID;
   });
   $rootScope.$watch('gameInSession', function() {
+    console.log('gameInSession', $rootScope.gameInSession);
     $scope.gameInSession = $rootScope.gameInSession;
   });
 
   socket.on('gameStart', function() {
+    console.log('gameStart triggered');
     $rootScope.gameInSession = true;
   });
 
@@ -198,7 +200,10 @@ angular.module('starter.controllers', [])
         if ($scope.distance < options.targetRadius) {
           $scope.targetAcquired = true;
           setTimeout(function() {
-            socket.emit('targetAcquiredBy', $scope.playerID);
+            socket.emit('targetAcquiredBy', {
+              playerName: $scope.playerName,
+              gameID: $rootScope.gameID
+            });
             $scope.targetAcquired = false;
           }, 1000);
         }
@@ -234,9 +239,10 @@ angular.module('starter.controllers', [])
   var privateGameCodes = {};
 
   $scope.gameTypes = options.gameTypes;
-  $scope.publicGames = {};
+  $scope.publicGames = {noGames: true};
   $scope.createdGame = {};
   $scope.register = {};
+  $scope.game = {};
   // $scope.now = new Date();
   // setTimeout(function() { $scope.now = new Date(); }, 1000);
 
@@ -345,7 +351,10 @@ angular.module('starter.controllers', [])
     // player out from the players list for that game
     // (and can notify a player if they are the only one remaining)
     // assume server will do socket.leave(gameID)
-    socket.emit('playerQuit', $scope.playerName);
+    socket.emit('playerQuit', {
+      playerName: $scope.playerName,
+      gameID: $rootScope.gameID
+    });
 
   };
 

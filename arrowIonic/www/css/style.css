@@ -92,11 +92,28 @@
   width: 100%;
   margin: 0;
   vertical-align: middle;*/
+  background-color: white;
   text-align: center;
+  color: #341B1C;
+  font-size: 18px;
+  font-weight: bold;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.whole-screen div {
+  vertical-align: middle;
+  padding-top: 15%;
 }
 
 .app-name {
   vertical-align: middle;
+  padding: 30px;
 }
 
 .app-circle {
@@ -125,7 +142,7 @@
 }
 
 .new-player-submit label {
-  
+
 }
 
 .tabs-menu {
@@ -133,10 +150,10 @@
 }
 
 .submit-buttons {
-  color: #BCD418; 
+  color: #BCD418;
 }
 
-.create-or-join, .choose-to-quit {
+.create-or-join, .choose-to-quit, .text-centered {
   text-align: center;
 }
 
