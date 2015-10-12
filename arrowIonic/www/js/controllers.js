@@ -271,11 +271,13 @@ angular.module('starter.controllers', [])
   };
 
   $scope.selectJoin = function() {
+    $scope.game.notExist = false;
     $scope.selectedCreate = false;
     $scope.selectedJoin = true;
   };
 
   $scope.joinGame = function (createNew, gameID) { //gameID only required for existing
+    $scope.game.notExist = false;
     $scope.joining = true;
     if (createNew) {
       do {
@@ -287,43 +289,49 @@ angular.module('starter.controllers', [])
       // checks if already exists
     } else {
       gameID = gameID.toUpperCase();
+      if (!(privateGameCodes[gameID] || $scope.publicGames[gameID])) {
+        $scope.joining = false;
+        $scope.game.notExist = true;
+      }
     }
 
-    $rootScope.gameID = gameID;
-    $rootScope.playerName = $scope.playerName;
+    if (!$scope.game.notExist) {
+      $rootScope.gameID = gameID;
+      $rootScope.playerName = $scope.playerName;
 
-    $cordovaGeolocation.getCurrentPosition({timeout: 10000, enableHighAccuracy: true})
-    .then(function(currentPosition) {
-      $scope.location = {
-        latitude: currentPosition.coords.latitude,
-        longitude: currentPosition.coords.longitude
-      };
+      $cordovaGeolocation.getCurrentPosition({timeout: 10000, enableHighAccuracy: true})
+      .then(function(currentPosition) {
+        $scope.location = {
+          latitude: currentPosition.coords.latitude,
+          longitude: currentPosition.coords.longitude
+        };
 
-      $scope.playerObj = {
-        location: $scope.location,
-        playerName: $scope.playerName,
-        gameID: gameID
-      };
+        $scope.playerObj = {
+          location: $scope.location,
+          playerName: $scope.playerName,
+          gameID: gameID
+        };
 
-      if (createNew) {
-        $scope.playerObj.newGame = {
-          isPrivate: $scope.createdGame.isPrivate,
-          gameType: options.gameTypes[$scope.createdGame.gameTypeIndex].name
+        if (createNew) {
+          $scope.playerObj.newGame = {
+            isPrivate: $scope.createdGame.isPrivate,
+            gameType: options.gameTypes[$scope.createdGame.gameTypeIndex].name
+          }
         }
-      }
-      // assume that the server will join the client to the gameID room
-      // when the client emits a 'gameEnter'
-      socket.emit('gameEnter', $scope.playerObj);
+        // assume that the server will join the client to the gameID room
+        // when the client emits a 'gameEnter'
+        socket.emit('gameEnter', $scope.playerObj);
 
-      // for now, set to async, but if we change to having any checks
-      // on whether gameID exists, then will need to move into callback
-      // function for socket.
-      $rootScope.hasJoinedGame = true;
-      $scope.hasJoinedGame = true;
-      $scope.joining = false;
-      $state.go('tab.compass');
-      // switch tabs to game tab
-    });
+        // for now, set to async, but if we change to having any checks
+        // on whether gameID exists, then will need to move into callback
+        // function for socket.
+        $rootScope.hasJoinedGame = true;
+        $scope.hasJoinedGame = true;
+        $scope.joining = false;
+        $state.go('tab.compass');
+        // switch tabs to game tab
+      });
+    }
   };
 
   // change name to 'quit' to avoid confusion with 'gameEnd'?
