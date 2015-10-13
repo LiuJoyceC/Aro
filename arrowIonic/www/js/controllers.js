@@ -121,8 +121,10 @@ angular.module('starter.controllers', [])
   //});
 
 
-.controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket) {
+.controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket, options) {
 
+  var demo = true;
+  var demoDistanceAdd = 0;
   // This was used to test the socket
   // socket.on('chat message', function(message) {
   //   console.log('successfully received chat message');
@@ -149,6 +151,15 @@ angular.module('starter.controllers', [])
   socket.on('gameStart', function() {
     console.log('gameStart triggered');
     $rootScope.gameInSession = true;
+    var addDistance = function() {
+      demoDistanceAdd += 50;
+      if (demoDistanceAdd < 4000) {
+      setTimeout(addDistance, 100);
+      }
+    };
+    if (demo && $rootScope.playerName === 'Joyce') {
+      addDistance();
+    }
   });
 
   document.addEventListener("deviceready", function () {
@@ -196,7 +207,7 @@ angular.module('starter.controllers', [])
         there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
         // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
         // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
-        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(6);
+        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(6) - demoDistanceAdd;
         if ($scope.distance < options.targetRadius) {
           $scope.targetAcquired = true;
           setTimeout(function() {
