@@ -1,14 +1,14 @@
 <ion-view view-title="Home">
   <ion-content>
 
-    <div ng-hide="playerName hasJoinedGame"class="app-logo">
+    <div class="app-logo">
       <div class="app-name center row">
         <div class="app-circle center">
           <div class="icon-left ion-android-navigate">roSwap</div>
         </div>
       </div>
     </div>
-    
+
     <div ng-hide="playerName"class="new-player">
       <div class="row new-player-name">
         <div class="list col col-75 center">
@@ -20,7 +20,7 @@
       </div>
       <div class="row submit-buttons">
         <input type="submit" ng-click="registerName()" class="button button-dark center submit-buttons">
-      </div>  
+      </div>
     </div>
 
     <div ng-if="playerName" ng-hide="hasJoinedGame" class="not-joined-game">
@@ -87,29 +87,29 @@
         <div ng-if="joining">Joining...</div>
         <div ng-if="game.notExist">The code you entered does not match a currently available game. Please enter another code, or join a public game, or create a new game.</div>
         <!-- Discuss with Joyce this refactor -->
-        <div ng-if="publicGames.Games">Or select an available public game:</div>
+        <div ng-if="!publicGames.noGames">Or select an available public game:</div>
         <!-- <div>Or select an available public game:</div> -->
         <div>
           <div ng-if="publicGames.noGames">There are currently no public games available to join. Please create a new game or join a private game.</div>
-          <div ng-repeat="(id, publicGame) in publicGames">
-            <div>Game type: {{ publicGame.gameType }}</div>
+          <div ng-repeat="(id, publicGame) in publicGames" ng-hide="id = 'noGames'">
+            <div ng-click="joinGame(false,id)"><h3>Game type: {{ publicGame.gameType }}</h3></div>
             <!-- <div>Spots available: {{ publicGame.maxPlayers - publicGame.players.length }}</div>
             <div>Additional players needed: {{ publicGame.players.length - publicGame.minPlayers }}</div>
             <div>Time remaining to join: {{ Math.round(publicGame.startTime - now )}}</div> -->
-            <div class="create-join">
+            <!-- <div class="create-or-join">
               <input type="submit" value="Join this game!" ng-click="joinGame(false, id)" class="button button-dark">
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
     </div>
 
-    <div class="whole-screen" ng-if="hasJoinedGame">
+    <div class="text-centered" ng-if="hasJoinedGame">
       <div><h3>Are you sure you want to quit the current game?</h3></div>
       <div class="choose-to-quit">
         <input type="submit" value="Yes" ng-click="endGame(true)" class="button button-dark">
         <a href="#/tab/compass"><input type="submit" value="No" class="button button-dark"></a>
-       </div> 
+       </div>
     </div>
   </ion-content>
 </ion-view>

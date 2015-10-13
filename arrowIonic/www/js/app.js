@@ -93,7 +93,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   // will be in server. Fon now just hard-coded
   var gameTypes = [
     {
-      name: 'Switch!',
+      name: 'SwappingGame',
       minPlayers: 2,
       maxPlayers: 2
     }
@@ -106,7 +106,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   };
 
   // # of miles from target player must be to acquire it
-  var targetRadius = 0.05;
+  // var targetRadius = 0.05;
+  var targetRadius = 5;
 
   return {
     codeOptions: codeOptions,

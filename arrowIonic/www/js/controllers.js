@@ -121,8 +121,10 @@ angular.module('starter.controllers', [])
   //});
 
 
-.controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket) {
+.controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket, options) {
 
+  var demo = true;
+  var demoDistanceAdd = 0;
   // This was used to test the socket
   // socket.on('chat message', function(message) {
   //   console.log('successfully received chat message');
@@ -142,11 +144,22 @@ angular.module('starter.controllers', [])
     $scope.gameID = $rootScope.gameID;
   });
   $rootScope.$watch('gameInSession', function() {
+    console.log('gameInSession', $rootScope.gameInSession);
     $scope.gameInSession = $rootScope.gameInSession;
   });
 
   socket.on('gameStart', function() {
+    console.log('gameStart triggered');
     $rootScope.gameInSession = true;
+    var addDistance = function() {
+      demoDistanceAdd += 50;
+      if (demoDistanceAdd < 4000) {
+      setTimeout(addDistance, 100);
+      }
+    };
+    if (demo && $rootScope.playerName === 'Joyce') {
+      addDistance();
+    }
   });
 
   document.addEventListener("deviceready", function () {
@@ -194,11 +207,14 @@ angular.module('starter.controllers', [])
         there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
         // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
         // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
-        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(6);
+        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(6) - demoDistanceAdd;
         if ($scope.distance < options.targetRadius) {
           $scope.targetAcquired = true;
           setTimeout(function() {
-            socket.emit('targetAcquiredBy', $scope.playerID);
+            socket.emit('targetAcquiredBy', {
+              playerName: $scope.playerName,
+              gameID: $rootScope.gameID
+            });
             $scope.targetAcquired = false;
           }, 1000);
         }
@@ -234,9 +250,10 @@ angular.module('starter.controllers', [])
   var privateGameCodes = {};
 
   $scope.gameTypes = options.gameTypes;
-  $scope.publicGames = {};
+  $scope.publicGames = {noGames: true};
   $scope.createdGame = {};
   $scope.register = {};
+  $scope.game = {};
   // $scope.now = new Date();
   // setTimeout(function() { $scope.now = new Date(); }, 1000);
 
@@ -345,7 +362,10 @@ angular.module('starter.controllers', [])
     // player out from the players list for that game
     // (and can notify a player if they are the only one remaining)
     // assume server will do socket.leave(gameID)
-    socket.emit('playerQuit', $scope.playerName);
+    socket.emit('playerQuit', {
+      playerName: $scope.playerName,
+      gameID: $rootScope.gameID
+    });
 
   };
 
