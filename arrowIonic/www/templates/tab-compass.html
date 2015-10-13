@@ -3,7 +3,7 @@
   <ion-pane>
     <!-- <div class="bar bar-header bar-positive miles-note"> -->
     <div class="bar bar-header miles-note">
-      <h1 class="title" ng-hide="targetAcquired">{{distance}} miles to target {{ targetName }}</h1>
+      <h1 class="title" ng-hide="targetAcquired || !distance">{{distance}} miles to target {{ targetName }}</h1>
       <h1 class="title" ng-if="targetAcquired">Target acquired!</h1>
       <!-- <h1 class="title">Targeting player {{ targetName }}</h1> -->
     </div>
