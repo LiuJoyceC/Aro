@@ -154,10 +154,10 @@ angular.module('starter.controllers', [])
     var addDistance = function() {
       demoDistanceAdd += 50;
       if (demoDistanceAdd < 4000) {
-      setTimeout(addDistance, 100);
+      setTimeout(addDistance, 1000);
       }
     };
-    if (demo && $rootScope.playerName === 'Joyce') {
+    if (demo && $rootScope.playerName === 'Taylor') {
       addDistance();
     }
   });
@@ -207,8 +207,9 @@ angular.module('starter.controllers', [])
         there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
         // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
         // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
-        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(6) - demoDistanceAdd;
+        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(2) - Math.round(demoDistanceAdd);
         if ($scope.distance < options.targetRadius) {
+          $scope.distance = 0;
           $scope.targetAcquired = true;
           setTimeout(function() {
             socket.emit('targetAcquiredBy', {
