@@ -44,15 +44,15 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 
   // Each tab has its own nav history stack:
 
-  .state('tab.map', {
-      url: '/map',
-      views: {
-        'tab-map': {
-          templateUrl: 'templates/tab-map.html',
-          controller: 'MapCtrl'
-        }
-      }
-    })
+  // .state('tab.map', {
+  //     url: '/map',
+  //     views: {
+  //       'tab-map': {
+  //         templateUrl: 'templates/tab-map.html',
+  //         controller: 'MapCtrl'
+  //       }
+  //     }
+  //   })
 
   .state('tab.compass', {
     url: '/compass',
@@ -93,6 +93,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   // will be in server. Fon now just hard-coded
   var gameTypes = [
     {
+      displayName: 'Swap',
       name: 'SwappingGame',
       minPlayers: 2,
       maxPlayers: 2
