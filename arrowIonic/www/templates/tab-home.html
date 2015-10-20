@@ -9,12 +9,12 @@
       </div>
     </div>
 
-    <div ng-hide="playerName"class="new-player">
+    <div ng-hide="playerName" class="new-player">
       <div class="row new-player-name">
         <div class="list col col-75 center">
           <label class="item item-input item-floating-label">
-            <span class="input-label">Name</span>
-            <input type="text" ng-model="register.name" placeholder="Name">
+            <span class="input-label">Enter Your Name</span>
+            <input type="text" ng-model="register.name" placeholder="Enter Your Name">
           </label>
         </div>
       </div>
@@ -30,6 +30,7 @@
       </div>
 
       <div ng-if="selectedCreate" class="selected-create">
+        <div class="main-heading"><h2>Create a new game</h2></div>
         <div><h3>Privacy</h3></div>
         <div class="list">
           <label class="item item-input item-select">
@@ -51,14 +52,14 @@
         </select> -->
         <div class="list">
           <label class="item item-input item-select">
-            <div class="input-label">Select game from dropdown</div>
+            <div class="input-label">Select game</div>
             <select ng-init="createdGame.gameTypeIndex=0" name="selectGameType" ng-model="createdGame.gameTypeIndex">
-              <option ng-repeat="gameType in gameTypes" value="{{ $index }}" ng-selected="$first">{{ gameType.name }}</option>
+              <option ng-repeat="gameType in gameTypes" value="{{ $index }}" ng-selected="$first">{{ gameType.displayName }}</option>
             </select>
           </label>
         </div>
-        <!-- confirm href added with Joyce -->
-        <div><a href="#">Click here to see the rules for the selected game</a></div>
+        <!-- <div><a href="#">Click here to see the rules for the selected game</a></div> -->
+
         <!-- <div>Select minimum number of players</div>
         <input type="number" ng-model="createdGame.minPlayers" ng-init="gametype.minPlayers"  min="{{ gametype.minPlayers }}" max="{{ createdGame.maxPlayers }}" ng-disabled="gametype.minPlayers = gametype.maxPlayers"> -->
 
@@ -74,6 +75,7 @@
 
       <div ng-if="selectedJoin">
 
+        <div class="main-heading"><h2>Join an existing game</h2></div>
         <div><h3>To join a private game, enter the game code:</h3></div>
         <div class="list">
           <label class="item">
@@ -90,7 +92,7 @@
         <div ng-if="!publicGames.noGames">Or select an available public game:</div>
         <!-- <div>Or select an available public game:</div> -->
         <div>
-          <div ng-if="publicGames.noGames">There are currently no public games available to join. Please create a new game or join a private game.</div>
+          <div ng-if="publicGames.noGames">There are currently no public games available to join. Please create a new game or join a private game.</div><!-- <div>{{publicGames}}</div> -->
           <div ng-repeat="(id, publicGame) in publicGames" ng-hide="id = 'noGames'">
             <div ng-click="joinGame(false,id)"><h3>Game type: {{ publicGame.gameType }}</h3></div>
             <!-- <div>Spots available: {{ publicGame.maxPlayers - publicGame.players.length }}</div>
