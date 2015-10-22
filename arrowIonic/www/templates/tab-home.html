@@ -93,7 +93,7 @@
         <!-- <div>Or select an available public game:</div> -->
         <div>
           <div ng-if="publicGames.noGames">There are currently no public games available to join. Please create a new game or join a private game.</div><!-- <div>{{publicGames}}</div> -->
-          <div ng-repeat="(id, publicGame) in publicGames" ng-hide="id = 'noGames'">
+          <div ng-repeat="(id, publicGame) in publicGames" ng-hide="id === 'noGames'">
             <div ng-click="joinGame(false,id)"><h3>Game type: {{ publicGame.gameType }}</h3></div>
             <!-- <div>Spots available: {{ publicGame.maxPlayers - publicGame.players.length }}</div>
             <div>Additional players needed: {{ publicGame.players.length - publicGame.minPlayers }}</div>
