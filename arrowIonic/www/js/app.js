@@ -116,3 +116,4 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
     targetRadius: targetRadius,
   };
 });
+//
