@@ -8,6 +8,7 @@ var liveGames = {};
 var playersByGame = {};
 
 io.on('connection', function(socket){
+  console.log('user connected');
   io.emit('updateLobby', lobby);
 
   socket.on('targetAcquiredBy', function(playerInfo){
@@ -25,8 +26,10 @@ io.on('connection', function(socket){
   });
 
   socket.on('playerQuit', function(playerInfo){
+    console.log('playerInfo', playerInfo);
     var quitter = playerInfo.playerName;
     var gameID = playerInfo.gameID;
+    console.log(playersByGame);
     var player0 = playersByGame[gameID][0].playerName;
     var player1 = playersByGame[gameID][1].playerName;
 
@@ -55,6 +58,7 @@ io.on('connection', function(socket){
   };
 
   socket.on('gameEnter', function(player) {
+    console.log('gameEnter received');
     var gameID = player.gameID;
     socket.join(gameID);
     var newGame = player.newGame;
