@@ -82,7 +82,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 .factory('socket', function(socketFactory) {
   // Create socket, connect to url (must change url here)
   // var myIoSocket = io.connect('https://arogames.herokuapp.com/');
-  var myIoSocket = io.connect('https://arogames.herokuapp.com/');
+  var myIoSocket = io.connect('https://immense-harbor-7864.herokuapp.com/');
   // var myIoSocket = io.connect('localhost:3000/');
 
   return socketFactory({
@@ -109,7 +109,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   };
 
   // # of miles from target player must be to acquire it
-  var targetRadius = 0.02;
+  var targetRadius = 0.0005;
   // var targetRadius = 5;
 
   return {
