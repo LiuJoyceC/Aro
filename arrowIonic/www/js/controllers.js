@@ -123,7 +123,7 @@ angular.module('starter.controllers', [])
 
 .controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket, options) {
 
-  var demo = true;
+  var demo = false;
   var demoDistanceAdd = 0;
   // This was used to test the socket
   // socket.on('chat message', function(message) {
@@ -207,7 +207,7 @@ angular.module('starter.controllers', [])
         there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
         // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
         // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
-        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(2) - Math.round(demoDistanceAdd);
+        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(3) - demoDistanceAdd;
         if ($scope.distance < options.targetRadius) {
           $scope.distance = 0;
           $scope.targetAcquired = true;
