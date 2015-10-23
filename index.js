@@ -6,6 +6,7 @@ var port = process.env.PORT || 3000;
 var lobby = {};
 var liveGames = {};
 var playersByGame = {};
+var sockets = {};
 
 io.on('connection', function(socket){
   console.log('user connected');
@@ -21,6 +22,7 @@ io.on('connection', function(socket){
       io.to(gameID).emit('gameEnd', winner);
       delete liveGames[gameID];
       delete playersByGame[gameID];
+      delete sockets[gameID];
       io.emit('console.log', liveGames);
     }
   });
@@ -42,6 +44,7 @@ io.on('connection', function(socket){
         }
         delete liveGames[gameID];
         delete playersByGame[gameID];
+        delete sockets[gameID];
         io.emit('console.log', liveGames);
       }
     } else if (lobby[gameID]) {
@@ -55,6 +58,7 @@ io.on('connection', function(socket){
         players.splice(playerInd, 1);
         if (players.length === 0) {
           delete lobby[gameID];
+          delete sockets[gameID];
         }
         console.log('new lobby game: ', lobby[gameID]);
         io.emit('updateLobby', lobby);
@@ -62,7 +66,7 @@ io.on('connection', function(socket){
     }
   });
 
-  var SwappingGame = function (players) {
+  var SwappingGame = function (players, playerSockets) {
     var gameID = players[0].gameID;
     var targets = {};
     targets[players[0].playerName] = players[1];
@@ -81,15 +85,17 @@ io.on('connection', function(socket){
     var newGame = player.newGame;
     if (newGame) {
       lobby[gameID] = {players: [], gameType: player.newGame.gameType, isPrivate: player.newGame.isPrivate};
+      sockets[gameID] = {};
     }
 
+    sockets[gameID][player.playerName] = socket;
     lobby[gameID].players.push(player);
     var gameType = lobby[gameID].gameType;
 
     if (lobby[gameID].players.length === gameSettings[gameType].max) {
       io.emit('gameStart', gameID);
       // call the gameType function passing in player array
-      liveGames[gameID] = new gameSettings[gameType].func((lobby[gameID].players));
+      liveGames[gameID] = new gameSettings[gameType].func((lobby[gameID].players), sockets[gameID]);
       playersByGame[gameID] = lobby[gameID].players;
       delete lobby[gameID];
     }
