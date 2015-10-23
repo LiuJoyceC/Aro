@@ -83,6 +83,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   // Create socket, connect to url (must change url here)
   //var myIoSocket = io.connect('https://arogames.herokuapp.com/');
   var myIoSocket = io.connect('https://immense-harbor-7864.herokuapp.com/');
+  // var myIoSocket = io.connect('https://localhost:3000/');
 
   return socketFactory({
     ioSocket: myIoSocket

@@ -10,6 +10,10 @@ var playersByGame = {};
 io.on('connection', function(socket){
   io.emit('updateLobby', lobby);
 
+  socket.on('hello', function() {
+    io.emit('hello received by server');
+  });
+
   socket.on('targetAcquiredBy', function(playerInfo){
     var winner = playerInfo.playerName;
     var gameID = playerInfo.gameID;

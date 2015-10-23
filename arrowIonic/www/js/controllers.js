@@ -263,6 +263,7 @@ angular.module('starter.controllers', [])
   };
 
   socket.on('updateLobby', function(newLobby) {
+    console.log('updateLobby received');
     // completing list first before assiging it
     // to scope variable, so that the user does
     // not visually see list get populated
