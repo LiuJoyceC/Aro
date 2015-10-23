@@ -29,19 +29,36 @@ io.on('connection', function(socket){
     console.log('playerInfo', playerInfo);
     var quitter = playerInfo.playerName;
     var gameID = playerInfo.gameID;
-    console.log(playersByGame);
-    var player0 = playersByGame[gameID][0].playerName;
-    var player1 = playersByGame[gameID][1].playerName;
 
-    if (quitter === player0 || quitter === player1) {
-      if (quitter === player0) {
-        io.to(gameID).emit('gameEnd', player1);
-      } else {
-        io.to(gameID).emit('gameEnd', player0);
+    if (playersByGame[gameID]) {
+      var player0 = playersByGame[gameID][0].playerName;
+      var player1 = playersByGame[gameID][1].playerName;
+
+      if (quitter === player0 || quitter === player1) {
+        if (quitter === player0) {
+          io.to(gameID).emit('gameEnd', player1);
+        } else {
+          io.to(gameID).emit('gameEnd', player0);
+        }
+        delete liveGames[gameID];
+        delete playersByGame[gameID];
+        io.emit('console.log', liveGames);
       }
-      delete liveGames[gameID];
-      delete playersByGame[gameID];
-      io.emit('console.log', liveGames);
+    } else if (lobby[gameID]) {
+      console.log('old lobby game: ', lobby[gameID]);
+      var players = lobby[gameID].players;
+      var playerNames = players.map(function(player) {
+        return player.playerName;
+      });
+      var playerInd = playerNames.indexOf(quitter);
+      if (playerInd !== -1) {
+        players.splice(playerInd, 1);
+        if (players.length === 0) {
+          delete lobby[gameID];
+        }
+        console.log('new lobby game: ', lobby[gameID]);
+        io.emit('updateLobby', lobby);
+      }
     }
   });
 
