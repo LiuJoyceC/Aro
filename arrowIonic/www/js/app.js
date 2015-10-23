@@ -81,7 +81,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 
 .factory('socket', function(socketFactory) {
   // Create socket, connect to url (must change url here)
-  var myIoSocket = io.connect('https://arogames.herokuapp.com/');
+  //var myIoSocket = io.connect('https://arogames.herokuapp.com/');
+  var myIoSocket = io.connect('https://immense-harbor-7864.herokuapp.com/');
 
   return socketFactory({
     ioSocket: myIoSocket
