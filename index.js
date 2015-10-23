@@ -12,20 +12,6 @@ io.on('connection', function(socket){
   console.log('user connected');
   io.emit('updateLobby', lobby);
 
-  socket.on('targetAcquiredBy', function(playerInfo){
-    var winner = playerInfo.playerName;
-    var gameID = playerInfo.gameID;
-    var player0 = playersByGame[gameID][0].playerName;
-    var player1 = playersByGame[gameID][1].playerName;
-
-    if (winner === player0 || winner === player1) {
-      io.to(gameID).emit('gameEnd', winner);
-      delete liveGames[gameID];
-      delete playersByGame[gameID];
-      delete sockets[gameID];
-      io.emit('console.log', liveGames);
-    }
-  });
 
   socket.on('playerQuit', function(playerInfo){
     console.log('playerInfo', playerInfo);
@@ -66,17 +52,7 @@ io.on('connection', function(socket){
     }
   });
 
-  var SwappingGame = function (players, playerSockets) {
-    var gameID = players[0].gameID;
-    var targets = {};
-    targets[players[0].playerName] = players[1];
-    targets[players[1].playerName] = players[0];
-    io.to(gameID).emit('newTarget', targets);
-  };
 
-  var gameSettings = {
-    SwappingGame: {func: SwappingGame, min: 2, max: 2}
-  };
 
   socket.on('gameEnter', function(player) {
     console.log('gameEnter received');
@@ -102,6 +78,36 @@ io.on('connection', function(socket){
     io.emit('updateLobby', lobby);
   });
 });
+
+var SwappingGame = function (players, playerSockets) {
+
+  for (var i = 0; i < players.length; i++) {
+    playerSockets[players[i].playerName].on('targetAcquiredBy', function(playerInfo){
+      var winner = playerInfo.playerName;
+      var gameID = playerInfo.gameID;
+      var player0 = playersByGame[gameID][0].playerName;
+      var player1 = playersByGame[gameID][1].playerName;
+
+      if (winner === player0 || winner === player1) {
+        io.to(gameID).emit('gameEnd', winner);
+        delete liveGames[gameID];
+        delete playersByGame[gameID];
+        delete sockets[gameID];
+        io.emit('console.log', liveGames);
+      }
+    });
+  }
+
+  var gameID = players[0].gameID;
+  var targets = {};
+  targets[players[0].playerName] = players[1];
+  targets[players[1].playerName] = players[0];
+  io.to(gameID).emit('newTarget', targets);
+};
+
+var gameSettings = {
+  SwappingGame: {func: SwappingGame, min: 2, max: 2}
+};
 
 http.listen(port, function(){
   console.log('listening on *:'+port);
