@@ -12,8 +12,10 @@ io.on('connection', function(socket){
   console.log('user connected');
   io.emit('updateLobby', lobby);
 
+  var gamePlayerInfo = false;
 
-  socket.on('playerQuit', function(playerInfo){
+  var quitGame = function(playerInfo){
+    console.log('a player quit!');
     console.log('playerInfo', playerInfo);
     var quitter = playerInfo.playerName;
     var gameID = playerInfo.gameID;
@@ -50,13 +52,17 @@ io.on('connection', function(socket){
         io.emit('updateLobby', lobby);
       }
     }
-  });
+  };
+
+  socket.on('playerQuit', quitGame);
 
 
 
   socket.on('gameEnter', function(player) {
     console.log('gameEnter received');
     var gameID = player.gameID;
+    var playerName = player.playerName;
+    gamePlayerInfo = {gameID: gameID, playerName: playerName};
     socket.join(gameID);
     var newGame = player.newGame;
     if (newGame) {
@@ -64,7 +70,7 @@ io.on('connection', function(socket){
       sockets[gameID] = {};
     }
 
-    sockets[gameID][player.playerName] = socket;
+    sockets[gameID][playerName] = socket;
     lobby[gameID].players.push(player);
     var gameType = lobby[gameID].gameType;
 
@@ -76,6 +82,11 @@ io.on('connection', function(socket){
       delete lobby[gameID];
     }
     io.emit('updateLobby', lobby);
+  });
+
+  socket.on('disconnect', function() {
+    console.log('player disconnected');
+    quitGame(gamePlayerInfo);
   });
 });
 
