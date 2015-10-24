@@ -134,7 +134,8 @@ var SwappingGame = function (players, playerSockets) {
     return liveGames[gameID][playerName].target;
   };
 
-  var assignNewTarget = function(playerName, targetName) {
+  // only a helper function for assignNewTarget and assignNewTargets
+  var updateTargets = function(playerName, targetName) {
     var oldTarget = liveGames[gameID][liveGames[gameID][playerName].target];
     if (oldTarget) {
       var ind = oldTarget.isTargetOf.indexOf(playerName);
@@ -145,14 +146,36 @@ var SwappingGame = function (players, playerSockets) {
 
     liveGames[gameID][playerName].target = targetName;
     liveGames[gameID][targetName].isTargetOf.push(playerName);
-    // emit newTarget
+  };
+
+  var assignNewTargets = function(targetsObj, callback) { //callback?
+    var emitObj = {};
+    for (var playerName in targetsObj) {
+      var targetName = targetsObj[playerName];
+      emitObj[playerName] = {
+        playerName: targetName,
+        location: getHomeLocationOf(targetName);
+      };
+      updateTargets(playerQuit, targetName);
+    }
+    io.to(gameID).emit('newTarget', emitObj); // callback?
+  };
+
+  var getHomeLocationOf = function(playerName) {
+    //
+  };
+
+  var assignNewTarget = function(playerName, targetName, callback) { // callback?
+    var targetsObj = {};
+    targetsObj[playerName] = targetName;
+    assignNewTargets(targetsObj, callback);
   };
 
   var playerOut = function(playerName) {
     if (typeof playerName === 'object') {
       playerName = playerName.playerName;
     }
-    //
+    // delete player from game
   };
 
   var setCurrentLocationAsHome = function(playerName) {
