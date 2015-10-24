@@ -149,6 +149,9 @@ var SwappingGame = function (players, playerSockets) {
   };
 
   var playerOut = function(playerName) {
+    if (typeof playerName === 'object') {
+      playerName = playerName.playerName;
+    }
     //
   };
 
@@ -161,7 +164,23 @@ var SwappingGame = function (players, playerSockets) {
   };
 
   var playerWins = function(playerName) {
-    //
+    if (typeof playerName === 'string') {
+      gameEnd(playerName);
+    }
+  };
+
+  var gameOver = function() {
+    gameEnd('No one');
+  };
+
+  var setUpPlayerQuitListener = function(playerName) {
+    playerSockets[playerName].on('playerQuit', playerOut);
+  };
+
+  // not part of game developer interface
+  // only helper function for playerWins and gameOver
+  var gameEnd = function(winner) {
+    io.to(gameID).emit('gameEnd', winner);
   };
 
   for (var i = 0; i < players.length; i++) {
