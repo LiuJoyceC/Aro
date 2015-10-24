@@ -16,7 +16,6 @@ io.on('connection', function(socket){
 
   var quitGame = function(playerInfo){
     console.log('a player quit!');
-    console.log('playerInfo', playerInfo);
     var quitter = playerInfo.playerName;
     var gameID = playerInfo.gameID;
 
@@ -56,8 +55,6 @@ io.on('connection', function(socket){
 
   socket.on('playerQuit', quitGame);
 
-
-
   socket.on('gameEnter', function(player) {
     console.log('gameEnter received');
     var gameID = player.gameID;
@@ -70,27 +67,102 @@ io.on('connection', function(socket){
       sockets[gameID] = {};
     }
 
+    var players = lobby[gameID].players;
     sockets[gameID][playerName] = socket;
-    lobby[gameID].players.push(player);
+    players.push(player);
     var gameType = lobby[gameID].gameType;
+    var numJoined = players.length;
 
-    if (lobby[gameID].players.length === gameSettings[gameType].max) {
+    if (numJoined === gameSettings[gameType].max) {
       io.emit('gameStart', gameID);
       // call the gameType function passing in player array
-      liveGames[gameID] = new gameSettings[gameType].func((lobby[gameID].players), sockets[gameID]);
-      playersByGame[gameID] = lobby[gameID].players;
+      var liveGame = liveGames[gameID] = {};
+      var joinedPlayer;
+      for (var j = 0; j < numJoined; j++) {
+        joinedPlayer = players[j];
+        liveGame[joinedPlayer.playerName] = {
+          socket: sockets[gameID][joinedPlayer.playerName],
+          isTargetOf: [];
+        };
+      }
+      playersByGame[gameID] = players;
+      gameSettings[gameType].func(players, sockets[gameID]);
       delete lobby[gameID];
     }
     io.emit('updateLobby', lobby);
+
   });
 
   socket.on('disconnect', function() {
     console.log('player disconnected');
     quitGame(gamePlayerInfo);
+    socket.removeAllListeners('playerQuit');
+    socket.removeAllListeners('gameEnter');
+    socket.removeAllListeners('targetAcquiredBy');
+    socket.removeAllListeners('disconnect');
   });
 });
 
 var SwappingGame = function (players, playerSockets) {
+  var gameID = players[0].gameID;
+  var targets = {};
+
+  // Only used as helper function for whenTargetAcquired
+  var setUpTargetAcquiredListener = function(playerName, callback) {
+    playerSockets[playerName].on('targetAcquiredBy', function() { //playerInfo not needed?
+      var targetName = getTargetOf(playerName);
+      callback(playerName, targetName);
+    });
+  }
+
+  // callback(playerName, targetName)
+  var whenTargetAcquired = function(playerName_s_, callback) {
+    if (typeof playerName_s_ === 'string') {
+      playerName_s_ = [playerName_s_];
+    }
+
+    if (Array.isArray(playerName_s_)) {
+      var numPlayers = playerName_s_.length;
+      var playerName;
+      for (var ind = 0; ind < numPlayers; ind++) {
+        setUpTargetAcquiredListener(playerName_s_[ind], callback);
+      }
+    }
+  };
+
+  var getTargetOf = function(playerName) {
+    return liveGames[gameID][playerName].target;
+  };
+
+  var assignNewTarget = function(playerName, targetName) {
+    var oldTarget = liveGames[gameID][liveGames[gameID][playerName].target];
+    if (oldTarget) {
+      var ind = oldTarget.isTargetOf.indexOf(playerName);
+      if (ind !== -1) {
+        oldTarget.isTargetOf.splice(ind, 1);
+      }
+    }
+
+    liveGames[gameID][playerName].target = targetName;
+    liveGames[gameID][targetName].isTargetOf.push(playerName);
+    // emit newTarget
+  };
+
+  var playerOut = function(playerName) {
+    //
+  };
+
+  var setCurrentLocationAsHome = function(playerName) {
+    // Needs to be the first thing that runs when game starts
+  };
+
+  var isTargeting = function(targetName) {
+    return liveGames[gameID][targetName].isTargetOf;
+  };
+
+  var playerWins = function(playerName) {
+    //
+  };
 
   for (var i = 0; i < players.length; i++) {
     playerSockets[players[i].playerName].on('targetAcquiredBy', function(playerInfo){
@@ -104,20 +176,18 @@ var SwappingGame = function (players, playerSockets) {
         delete liveGames[gameID];
         delete playersByGame[gameID];
         delete sockets[gameID];
-        io.emit('console.log', liveGames);
+        //io.emit('console.log', liveGames);
       }
     });
   }
 
-  var gameID = players[0].gameID;
-  var targets = {};
   targets[players[0].playerName] = players[1];
   targets[players[1].playerName] = players[0];
   io.to(gameID).emit('newTarget', targets);
 };
 
 var gameSettings = {
-  SwappingGame: {func: SwappingGame, min: 2, max: 2}
+  SwappingGame: {name: 'Swap', func: SwappingGame, min: 2, max: 2}
 };
 
 http.listen(port, function(){
