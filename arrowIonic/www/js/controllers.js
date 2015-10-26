@@ -125,14 +125,6 @@ angular.module('starter.controllers', [])
 
   var demo = true;
   var demoDistanceAdd = 0;
-  // This was used to test the socket
-  // socket.on('chat message', function(message) {
-  //   console.log('successfully received chat message');
-  //   console.log(message);
-  //   $scope.receivedmessage = message;
-  // });
-
-  // socket.emit('chat message', 'This is the emitted message from client');
 
   $rootScope.$watch('hasJoinedGame', function() {
     $scope.hasJoinedGame = $rootScope.hasJoinedGame || ($scope.winnerMessage = false);
@@ -226,10 +218,11 @@ angular.module('starter.controllers', [])
       if ($scope.distance < options.targetRadius && !$scope.targetAcquired) {
         $scope.distance = 0;
         $scope.targetAcquired = true;
-        socket.emit('targetAcquiredBy', {
-          playerName: $rootScope.playerName,
-          gameID: $rootScope.gameID
-        });
+        // socket.emit('targetAcquiredBy', {
+        //   playerName: $rootScope.playerName,
+        //   gameID: $rootScope.gameID
+        // });
+        socket.emit('acquiredTarget', $scope.targetName);
       }
     });
 
