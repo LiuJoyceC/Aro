@@ -157,15 +157,23 @@ angular.module('starter.controllers', [])
     }
   });
 
+  socket.on('getCurrLocation', function(playerNames) {
+    if (playerNames[$rootScope.playerName]) {
+      socket.emit('currLocation', $rootScope.location);
+    }
+  });
+
   socket.on('newTarget', function(targetsObj) {
     // using rootScope instead of scope just in case
     // the scope has not been updated yet
     var target = targetsObj[$rootScope.playerName];
     if (target) {
+      $scope.targetHasBeenUpdated = true;
       $scope.targetName = target.playerName;
       $scope.targetLocation = target.location;
     }
     setTimeout(function() {
+      $scope.targetHasBeenUpdated = false;
       $scope.targetAcquired = false;
     }, 1000);
   });
@@ -210,6 +218,11 @@ angular.module('starter.controllers', [])
       console.log(err);
     },
     function(position) {
+      $rootScope.location = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      };
+
       here = turf.point([position.coords.latitude, position.coords.longitude]);
       there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
       // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
@@ -325,13 +338,13 @@ angular.module('starter.controllers', [])
 
       $cordovaGeolocation.getCurrentPosition({timeout: 10000, enableHighAccuracy: true})
       .then(function(currentPosition) {
-        $scope.location = {
+        $rootScope.location = {
           latitude: currentPosition.coords.latitude,
           longitude: currentPosition.coords.longitude
         };
 
         $scope.playerObj = {
-          location: $scope.location,
+          location: $rootScope.location,
           playerName: $scope.playerName,
           gameID: gameID
         };

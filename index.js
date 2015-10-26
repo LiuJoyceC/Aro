@@ -128,7 +128,7 @@ var SwappingGame = function (players, playerSockets) {
 
   // Only used as helper function for whenTargetAcquired
   // can assume playerName is valid player still in game
-  var setUpTargetAcquiredListener = function(playerName, callback) {
+  var setUpAcquiredTargetListener = function(playerName, callback) {
     playerSockets[playerName].removeAllListeners('acquiredTarget');
     playerSockets[playerName].on('acquiredTarget', function(targetName) {
       // due to async nature of sockets and possible slow connections
@@ -154,7 +154,7 @@ var SwappingGame = function (players, playerSockets) {
       for (var ind = 0; ind < numPlayers; ind++) {
         playerName = playerName_s_[ind];
         if (playerInGame(playerName)) {
-          setUpTargetAcquiredListener(playerName, callback);
+          setUpAcquiredTargetListener(playerName, callback);
         }
       }
     }
@@ -202,18 +202,26 @@ var SwappingGame = function (players, playerSockets) {
           // if you pass in false for a playerName in the targetsObj,
           // then the player will now have no target
           emitObj[playerName] = {
-            noTarget: true
+            location: {}
           };
         }
       }
     }
     io.to(gameID).emit('newTarget', emitObj); // then-callback?
+    // because a check is built into the acquiredTarget listener
+    // to ensure that client does not acquire an old target after
+    // new targets have been emitted, this function can be treated
+    // as if it is synchronous.
   };
 
   var assignNewTarget = function(playerName, targetName) { // then-callback?
     var targetsObj = {};
     targetsObj[playerName] = targetName;
     assignNewTargets(targetsObj); // then-callback?
+    // because a check is built into the acquiredTarget listener
+    // to ensure that client does not acquire an old target after
+    // new targets have been emitted, this function can be treated
+    // as if it is synchronous.
   };
 
   var getHomeLocationOf = function(playerName) {
@@ -227,7 +235,8 @@ var SwappingGame = function (players, playerSockets) {
       playerName = playerName.playerName;
     }
     if (playerInGame(playerName)) {
-      io.to(gameID).emit('playerOut', playerName); //async?
+      disactivateGameplayListeners([playerName]);
+      io.to(gameID).emit('playerOut', playerName);
       var currTargetName = liveGames[gameID][playerName].target;
       var currTargetIsTargetOf = liveGames[gameID][currTargetName].isTargetOf;
       for (var i = 0; i < currTargetIsTargetOf.length; i++) {
@@ -248,8 +257,12 @@ var SwappingGame = function (players, playerSockets) {
         for (var j = 0; j < isTargetOf.length; j++) {
           targetsObj[isTargetOf[j]] = currTargetName;
         }
-        assignNewTargets(targetsObj); //then-callback?
+        assignNewTargets(targetsObj); //then-callback? not needed anymore
       }
+    }
+    var playerInd = allPlayers.indexOf(playerName);
+    if (playerInd !== -1) {
+      allPlayers.splice(playerInd, 1);
     }
   };
 
@@ -309,6 +322,10 @@ var SwappingGame = function (players, playerSockets) {
           then();
         }
       }, 5000);
+    } else {
+      // if playerName_s_ not an array, then no home locations will be
+      // updated, and the then-callback just immediately executes
+      then();
     }
   };
 
@@ -340,10 +357,25 @@ var SwappingGame = function (players, playerSockets) {
     gameEnd('No one');
   };
 
+  var disactivateGameplayListeners = function(playerNames) {
+    var playerSocket;
+    for (var i = 0; i < playerNames; i++) {
+      playerSocket = playerSockets[playerNames[i]];
+      if (playerSocket) {
+        playerSocket.removeAllListeners('acquiredTarget');
+        playerSocket.removeAllListeners('currLocation');
+        playerSocket.removeListener('playerQuit', playerOut);
+        playerSocket.removeListener('disconnect', playerOut);
+      }
+    }
+  };
+
   // must be run before game logic
   var setUpPlayerQuitListeners = function() {
     for (var playerName in playerSockets) {
-      playerSockets[playerName].on('playerQuit', playerOut);
+      var playerSocket = playerSockets[playerName];
+      playerSocket.on('playerQuit', playerOut);
+      playerSocket.on('disconnect', playerOut);
     }
   };
 
@@ -351,6 +383,7 @@ var SwappingGame = function (players, playerSockets) {
   // only helper function for playerWins and gameOver
   var gameEnd = function(winner) {
     io.to(gameID).emit('gameEnd', winner);
+    disactivateGameplayListeners(allPlayers);
   };
 
   for (var i = 0; i < players.length; i++) {
