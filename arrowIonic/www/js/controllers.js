@@ -143,6 +143,9 @@ angular.module('starter.controllers', [])
   $rootScope.$watch('gameID', function() {
     $scope.gameID = $rootScope.gameID;
   });
+  $rootScope.$watch('isPlayerOut', function() {
+    $scope.isPlayerOut = $rootScope.isPlayerOut;
+  });
   $rootScope.$watch('gameInSession', function() {
     console.log('gameInSession', $rootScope.gameInSession);
     $scope.gameInSession = $rootScope.gameInSession;
@@ -162,6 +165,36 @@ angular.module('starter.controllers', [])
     }
   });
 
+  socket.on('newTarget', function(targetsObj) {
+    // using rootScope instead of scope just in case
+    // the scope has not been updated yet
+    var target = targetsObj[$rootScope.playerName];
+    if (target) {
+      $scope.targetName = target.playerName;
+      $scope.targetLocation = target.location;
+    }
+    setTimeout(function() {
+      $scope.targetAcquired = false;
+    }, 1000);
+  });
+
+  socket.on('playerOut', function(playerName) {
+    if (playerName === $rootScope.playerName) {
+      $rootScope.playerIsOut = $scope.playerIsOut = true;
+    }
+  });
+
+  socket.on('gameEnd', function(winnerName) {
+    if ($rootScope.playerName === winnerName) {
+      $scope.winnerMessage = 'Game over. You win!'
+    } else {
+      $scope.winnerMessage = 'Game over. ' + winnerName + ' wins!'
+    }
+    setTimeout(function() {
+      $scope.targetAcquired = false;
+    }, 1000);
+  });
+
   document.addEventListener("deviceready", function () {
   // will need to test if waiting for deviceready may cause
   // a problem if the server emits 'newTarget' before deviceready
@@ -169,24 +202,6 @@ angular.module('starter.controllers', [])
     var here, there, heading, bearing;
 
     $scope.targetLocation = {};
-
-    socket.on('newTarget', function(targetsObj) {
-      // using rootScope instead of scope just in case
-      // the scope has not been updated yet
-      var target = targetsObj[$rootScope.playerName];
-      if (target) {
-        $scope.targetName = target.playerName;
-        $scope.targetLocation = target.location;
-      }
-    });
-
-    socket.on('gameEnd', function(winnerName) {
-      if ($scope.PlayerName === winnerName) {
-        $scope.winnerMessage = 'Game over. You win!'
-      } else {
-        $scope.winnerMessage = 'Game over. ' + winnerName + ' wins!'
-      }
-    });
 
     // see http://ngcordova.com/docs/plugins/geolocation
     var locationOptions = {
@@ -197,28 +212,25 @@ angular.module('starter.controllers', [])
 
 
     $cordovaGeolocation.watchPosition(locationOptions)
-      .then(
-      null,
-      function(err) {
-        console.log(err);
-      },
-      function(position) {
-        here = turf.point([position.coords.latitude, position.coords.longitude]);
-        there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
-        // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
-        // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
-        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(4);// - Math.round(demoDistanceAdd);
-        if ($scope.distance < options.targetRadius) {
-          $scope.distance = 0;
-          $scope.targetAcquired = true;
-          setTimeout(function() {
-            socket.emit('targetAcquiredBy', {
-              playerName: $scope.playerName,
-              gameID: $rootScope.gameID
-            });
-            $scope.targetAcquired = false;
-          }, 1000);
-        }
+    .then(
+    null,
+    function(err) {
+      console.log(err);
+    },
+    function(position) {
+      here = turf.point([position.coords.latitude, position.coords.longitude]);
+      there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
+      // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
+      // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
+      $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(4);// - Math.round(demoDistanceAdd);
+      if ($scope.distance < options.targetRadius && !$scope.targetAcquired) {
+        $scope.distance = 0;
+        $scope.targetAcquired = true;
+        socket.emit('targetAcquiredBy', {
+          playerName: $rootScope.playerName,
+          gameID: $rootScope.gameID
+        });
+      }
     });
 
 
@@ -357,6 +369,7 @@ angular.module('starter.controllers', [])
   $scope.endGame = function() { // delete parameter in html
     $rootScope.hasJoinedGame = false;
     $rootScope.gameInSession = false;
+    $rootScope.playerIsOut = false;
     $scope.hasJoinedGame = false;
     $scope.selectedJoin = false;
     $scope.selectedCreate = false;
@@ -368,6 +381,7 @@ angular.module('starter.controllers', [])
       playerName: $scope.playerName,
       gameID: $rootScope.gameID
     });
+
 
   };
 
