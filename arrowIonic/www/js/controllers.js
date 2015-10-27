@@ -123,8 +123,8 @@ angular.module('starter.controllers', [])
 
 .controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket, options) {
 
-  var demo = true;
-  var demoDistanceAdd = 0;
+  var demo = false;
+  //var demoDistanceAdd = 0;
 
   $rootScope.$watch('hasJoinedGame', function() {
     $scope.hasJoinedGame = $rootScope.hasJoinedGame || ($scope.winnerMessage = false);
@@ -135,8 +135,8 @@ angular.module('starter.controllers', [])
   $rootScope.$watch('gameID', function() {
     $scope.gameID = $rootScope.gameID;
   });
-  $rootScope.$watch('isPlayerOut', function() {
-    $scope.isPlayerOut = $rootScope.isPlayerOut;
+  $rootScope.$watch('playerIsOut', function() {
+    $scope.playerIsOut = $rootScope.playerIsOut;
   });
   $rootScope.$watch('gameInSession', function() {
     console.log('gameInSession', $rootScope.gameInSession);
@@ -146,14 +146,30 @@ angular.module('starter.controllers', [])
   socket.on('gameStart', function() {
     console.log('gameStart triggered');
     $rootScope.gameInSession = true;
-    var addDistance = function() {
-      demoDistanceAdd += 50;
-      if (demoDistanceAdd < 4000) {
-      setTimeout(addDistance, 1000);
+    // var addDistance = function() {
+    //   demoDistanceAdd += 50;
+    //   if (demoDistanceAdd < 4000) {
+    //   setTimeout(addDistance, 1000);
+    //   }
+    // };
+    // if (demo && $rootScope.playerName === 'Taylor') {
+    //   addDistance();
+    // }
+    if (demo) {
+      $scope.distance = 10;
+      var decrementDistance = function() {
+        $scope.distance -= Math.random();
+        console.log($scope.distance);
+        if ($scope.distance < options.targetRadius && !$scope.targetAcquired && !$scope.playerIsOut) {
+          $scope.distance = 0;
+          $scope.targetAcquired = true;
+          socket.emit('acquiredTarget', $scope.targetName);
+          console.log('acquiredTarget emitted');
+        } else {
+          setTimeout(decrementDistance, 1000)
+        }
       }
-    };
-    if (demo && $rootScope.playerName === 'Taylor') {
-      addDistance();
+      decrementDistance();
     }
   });
 
@@ -199,6 +215,7 @@ angular.module('starter.controllers', [])
   // will need to test if waiting for deviceready may cause
   // a problem if the server emits 'newTarget' before deviceready
 
+    console.log('deviceready ran');
     var here, there, heading, bearing;
 
     $scope.targetLocation = {};
@@ -227,15 +244,18 @@ angular.module('starter.controllers', [])
       there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
       // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
       // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
-      $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(4);// - Math.round(demoDistanceAdd);
-      if ($scope.distance < options.targetRadius && !$scope.targetAcquired) {
-        $scope.distance = 0;
-        $scope.targetAcquired = true;
-        // socket.emit('targetAcquiredBy', {
-        //   playerName: $rootScope.playerName,
-        //   gameID: $rootScope.gameID
-        // });
-        socket.emit('acquiredTarget', $scope.targetName);
+      if (!demo) {
+        $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(4);
+        if ($scope.distance < options.targetRadius && !$scope.targetAcquired && !$scope.playerIsOut) {
+          $scope.distance = 0;
+          $scope.targetAcquired = true;
+          // socket.emit('targetAcquiredBy', {
+          //   playerName: $rootScope.playerName,
+          //   gameID: $rootScope.gameID
+          // });
+          socket.emit('acquiredTarget', $scope.targetName);
+          console.log('acquiredTarget emitted');
+        }
       }
     });
 
@@ -255,9 +275,9 @@ angular.module('starter.controllers', [])
         //$scope.heading = heading;
         bearing = Math.floor(turf.bearing(here, there) - heading + 90);
         $scope.rotation = '-webkit-transform: rotate('+ bearing +'deg);transform: rotate('+ bearing +'deg);';
-      });
+    });
 
-    }, false);
+  }, false);
 
 })
 
@@ -282,6 +302,7 @@ angular.module('starter.controllers', [])
 
   socket.on('updateLobby', function(newLobby) {
     console.log('updateLobby received');
+    console.log(newLobby);
     // completing list first before assiging it
     // to scope variable, so that the user does
     // not visually see list get populated
@@ -300,6 +321,7 @@ angular.module('starter.controllers', [])
 
     $scope.publicGames = publicGames;
     privateGameCodes = privateGames;
+    console.log($scope.publicGames);
   });
 
   $scope.selectCreate = function() {
@@ -318,7 +340,7 @@ angular.module('starter.controllers', [])
     $scope.joining = true;
     if (createNew) {
       do {
-      gameID = '';
+        gameID = '';
         for (var j = 0; j < codeOptions[$scope.createdGame.isPrivate?'privateLen':'publicLen']; j++) {
           gameID += chars[Math.floor(Math.random()*chars.length)];
         }

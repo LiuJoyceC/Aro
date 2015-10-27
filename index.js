@@ -61,16 +61,16 @@ io.on('connection', function(socket){
   socket.on('gameEnter', function(player) {
     console.log('gameEnter received');
     var gameID = player.gameID;
+    var newGame = player.newGame;
+    if (newGame) {
+      lobby[gameID] = {players: [], gameType: player.newGame.gameType, isPrivate: player.newGame.isPrivate};
+      sockets[gameID] = {};
+    }
     if (lobby[gameID]) {
       socket.join(gameID);
       // emit indicator that player successfully joined?
       var playerName = player.playerName;
       gamePlayerInfo = {gameID: gameID, playerName: playerName};
-      var newGame = player.newGame;
-      if (newGame) {
-        lobby[gameID] = {players: [], gameType: player.newGame.gameType, isPrivate: player.newGame.isPrivate};
-        sockets[gameID] = {};
-      }
 
       var players = lobby[gameID].players;
       sockets[gameID][playerName] = socket;
@@ -99,6 +99,7 @@ io.on('connection', function(socket){
     } else {
       // emit some kind of indicator that game is no longer available
     }
+    console.log('lobby', JSON.stringify(lobby));
     io.emit('updateLobby', lobby);
 
   });
@@ -127,7 +128,8 @@ var SwappingGame = function (players, playerSockets) {
 
   // helper function only
   var playerInGame = function(playerName) {
-    if (typeof playerName === 'string' && liveGames[gameID][playerName]) {
+    var liveGame = liveGames[gameID];
+    if (typeof playerName === 'string' && liveGame && liveGame[playerName]) {
       return playerName;
     } else {
       return false;
@@ -147,7 +149,7 @@ var SwappingGame = function (players, playerSockets) {
         callback(playerName, targetName);
       }
     });
-  }
+  };
 
   // callback(playerName, targetName)
   // playerName_s_ is either a playerName or array of playerNames
@@ -204,7 +206,7 @@ var SwappingGame = function (players, playerSockets) {
         if (targetName) {
           emitObj[playerName] = {
             playerName: targetName,
-            location: getHomeLocationOf(targetName);
+            location: getHomeLocationOf(targetName)
           };
         } else {
           // if you pass in false for a playerName in the targetsObj,
@@ -273,7 +275,7 @@ var SwappingGame = function (players, playerSockets) {
     //     }
     //     assignNewTargets(targetsObj); //next-callback? not needed anymore
     //   }
-    // }
+    }
 
     playerOutCallback(playerName, allPlayers);
   };
@@ -316,7 +318,7 @@ var SwappingGame = function (players, playerSockets) {
     // after setUpPlayerQuitListeners and whenTargetAcquired
     // have been set up
     setCurrentLocationAsHome(allPlayers, next);
-  }
+  };
 
   var setCurrentLocationAsHome = function(playerName_s_, next) {
     if (typeof playerName_s_ === 'string') {
@@ -352,7 +354,7 @@ var SwappingGame = function (players, playerSockets) {
         playerName = playerName_s_[i];
         if (playerInGame(playerName)) {
           remainingPlayers[playerName] = 1;
-          setCurrLocationListener(playerName, whenLocationReceived);
+          setUpCurrLocationListener(playerName, whenLocationReceived);
         }
       }
       io.to(gameID).emit('getCurrLocation', remainingPlayers); // need to set up on client
@@ -381,7 +383,7 @@ var SwappingGame = function (players, playerSockets) {
     playerSockets[playerName].on('currLocation', function(location) {
       callback(playerName, location);
     });
-  }
+  };
 
 
   var isTargeting = function(targetName) {
