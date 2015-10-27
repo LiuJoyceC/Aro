@@ -12,29 +12,31 @@ io.on('connection', function(socket){
   console.log('user connected');
   io.emit('updateLobby', lobby);
 
-  var gamePlayerInfo = false;
+  var gamePlayerInfo = {};
 
   var quitGame = function(playerInfo){
     console.log('a player quit!');
     var quitter = playerInfo.playerName;
     var gameID = playerInfo.gameID;
 
-    if (playersByGame[gameID]) {
-      var player0 = playersByGame[gameID][0].playerName;
-      var player1 = playersByGame[gameID][1].playerName;
+    // if (playersByGame[gameID]) {
+    //   var player0 = playersByGame[gameID][0].playerName;
+    //   var player1 = playersByGame[gameID][1].playerName;
 
-      if (quitter === player0 || quitter === player1) {
-        if (quitter === player0) {
-          io.to(gameID).emit('gameEnd', player1);
-        } else {
-          io.to(gameID).emit('gameEnd', player0);
-        }
-        delete liveGames[gameID];
-        delete playersByGame[gameID];
-        delete sockets[gameID];
-        //io.emit('console.log', liveGames);
-      }
-    } else if (lobby[gameID]) {
+    //   if (quitter === player0 || quitter === player1) {
+    //     if (quitter === player0) {
+    //       io.to(gameID).emit('gameEnd', player1);
+    //     } else {
+    //       io.to(gameID).emit('gameEnd', player0);
+    //     }
+    //     delete liveGames[gameID];
+    //     delete playersByGame[gameID];
+    //     delete sockets[gameID];
+    //     //io.emit('console.log', liveGames);
+    //   }
+    // }
+
+    if (lobby[gameID]) {
       console.log('old lobby game: ', lobby[gameID]);
       var players = lobby[gameID].players;
       var playerNames = players.map(function(player) {
@@ -51,6 +53,7 @@ io.on('connection', function(socket){
         io.emit('updateLobby', lobby);
       }
     }
+    socket.leave(gameID);
   };
 
   socket.on('playerQuit', quitGame);
@@ -83,7 +86,7 @@ io.on('connection', function(socket){
         for (var j = 0; j < numJoined; j++) {
           joinedPlayer = players[j];
           liveGame[joinedPlayer.playerName] = {
-            socket: sockets[gameID][joinedPlayer.playerName],
+            //socket: sockets[gameID][joinedPlayer.playerName],
             target: false, // starts out with no target, must assign in game
             isTargetOf: [],
             home: joinedPlayer.location
@@ -115,7 +118,12 @@ var SwappingGame = function (players, playerSockets) {
   var gameID = players[0].gameID;
   var targets = {};
 
+  // not directly accessible in game development library
   var allPlayers = Object.keys(liveGames[gameID]);
+
+  var listAllPlayers = function() {
+    return allPlayers.slice();
+  };
 
   // helper function only
   var playerInGame = function(playerName) {
@@ -186,7 +194,7 @@ var SwappingGame = function (players, playerSockets) {
     }
   };
 
-  var assignNewTargets = function(targetsObj) { //then-callback?
+  var assignNewTargets = function(targetsObj) { //next-callback?
     var emitObj = {};
     for (var playerName in targetsObj) {
       // check if playerName is valid player still in game
@@ -207,17 +215,17 @@ var SwappingGame = function (players, playerSockets) {
         }
       }
     }
-    io.to(gameID).emit('newTarget', emitObj); // then-callback?
+    io.to(gameID).emit('newTarget', emitObj); // next-callback?
     // because a check is built into the acquiredTarget listener
     // to ensure that client does not acquire an old target after
     // new targets have been emitted, this function can be treated
     // as if it is synchronous.
   };
 
-  var assignNewTarget = function(playerName, targetName) { // then-callback?
+  var assignNewTarget = function(playerName, targetName) { // next-callback?
     var targetsObj = {};
     targetsObj[playerName] = targetName;
-    assignNewTargets(targetsObj); // then-callback?
+    assignNewTargets(targetsObj); // next-callback?
     // because a check is built into the acquiredTarget listener
     // to ensure that client does not acquire an old target after
     // new targets have been emitted, this function can be treated
@@ -230,7 +238,7 @@ var SwappingGame = function (players, playerSockets) {
     }
   };
 
-  var playerOut = function(playerName) { //then-callback if assignNewTargets?
+  var playerOut = function(playerName) { //next-callback if assignNewTargets?
     if (typeof playerName === 'object') {
       playerName = playerName.playerName;
     }
@@ -247,41 +255,78 @@ var SwappingGame = function (players, playerSockets) {
       }
       var isTargetOf = liveGames[gameID][playerName].isTargetOf;
       delete liveGames[gameID][playerName];
-      var len = isTargetOf.length;
-      // If the player's pursuers have not already been reassigned
-      // targets, then by default they will now be targeting the
-      // player's current target. However, it is recommended that
-      // the game logic always reassigns targets before calling playerOut
-      if (len) {
-        var targetsObj = {};
-        for (var j = 0; j < isTargetOf.length; j++) {
-          targetsObj[isTargetOf[j]] = currTargetName;
-        }
-        assignNewTargets(targetsObj); //then-callback? not needed anymore
+
+      var playerInd = allPlayers.indexOf(playerName);
+      if (playerInd !== -1) {
+        allPlayers.splice(playerInd, 1);
       }
-    }
-    var playerInd = allPlayers.indexOf(playerName);
-    if (playerInd !== -1) {
-      allPlayers.splice(playerInd, 1);
-    }
+
+    //   var len = isTargetOf.length;
+    //   // If the player's pursuers have not already been reassigned
+    //   // targets, then by default they will now be targeting the
+    //   // player's current target. However, it is recommended that
+    //   // the game logic always reassigns targets before calling playerOut
+    //   if (len) {
+    //     var targetsObj = {};
+    //     for (var j = 0; j < isTargetOf.length; j++) {
+    //       targetsObj[isTargetOf[j]] = currTargetName;
+    //     }
+    //     assignNewTargets(targetsObj); //next-callback? not needed anymore
+    //   }
+    // }
+
+    playerOutCallback(playerName, allPlayers);
   };
 
-  var setCurrentLocationOfAllAsHome = function(then) {
+  // Not directly accessible in game developer library
+  var playerOutCallback = function(outPlayerName, outPlayerInfo) {
+    // Must call whenPlayerOut to set this playerOutCallback
+  };
+
+  // Only one playerOutCallback can be defined at a time,
+  // if whenPlayerOut is called again, playerOutCallback replaced
+  // callback(outPlayerName, outPlayerInfo)
+  // if at the end of the callback the game hasn't ended and there
+  // are players still targeting the outPlayer, those players will
+  // now get assigned no target
+  // may later add team or role as a parameter
+  var whenPlayerOut = function(callback) {
+    playerOutCallback = function(outPlayerName, outPlayerInfo) {
+      callback(outPlayerName, outPlayerInfo);
+      // if game has not already been ended in callback
+      if (liveGames[gameID]) {
+        if (allPlayers.length === 1) {
+          playerWins(allPlayers[0]);
+        } else {
+          var targetsObj = {};
+          for (var i = 0; i < allPlayers.length; i++) {
+            var playerName = allPlayers[i];
+            if (!playerInGame(liveGames[gameID][playerName].target)) {
+              targetsObj[playerName] = false;
+            }
+          }
+          assignNewTargets(targetsObj);
+        }
+      }
+    };
+  };
+
+  var setCurrentLocationOfAllAsHome = function(next) {
     // Needs to be the first thing that runs when game starts
     // after setUpPlayerQuitListeners and whenTargetAcquired
     // have been set up
-    setCurrentLocationAsHome(allPlayers, then);
+    setCurrentLocationAsHome(allPlayers, next);
   }
 
-  var setCurrentLocationAsHome = function(playerName_s_, then) {
+  var setCurrentLocationAsHome = function(playerName_s_, next) {
     if (typeof playerName_s_ === 'string') {
       playerName_s_ = [playerName_s_];
     }
 
     if (Array.isArray(playerName_s_)) {
       // setCurrLocationListener for each of the valid players in the array
-      // once all players have emitted back location, then-callback will run
-      var thenCallbackHasRun = false;
+      // once all players have emitted back location, next-callback will run
+      var nextCallbackHasRun = false;
       var whenLocationReceived = function(playerName, location) {
         liveGames[gameID][playerName].home = location;
         delete remainingPlayers[playerName];
@@ -294,9 +339,9 @@ var SwappingGame = function (players, playerSockets) {
           }
         }*/
 
-        if (Object.keys(remainingPlayers).length === 0 && !thenCallbackHasRun) {
-          thenCallbackHasRun = true;
-          then();
+        if (Object.keys(remainingPlayers).length === 0 && !nextCallbackHasRun) {
+          nextCallbackHasRun = true;
+          next();
         }
       };
 
@@ -317,15 +362,15 @@ var SwappingGame = function (players, playerSockets) {
       // after 5 seconds, but no guarantee that any new pursuers will get
       // the new location as their next target location
       setTimeout(function() {
-        if (!thenCallbackHasRun) {
-          thenCallbackHasRun = true;
-          then();
+        if (!nextCallbackHasRun) {
+          nextCallbackHasRun = true;
+          next();
         }
       }, 5000);
     } else {
       // if playerName_s_ not an array, then no home locations will be
-      // updated, and the then-callback just immediately executes
-      then();
+      // updated, and the next-callback just immediately executes
+      next();
     }
   };
 
@@ -384,28 +429,59 @@ var SwappingGame = function (players, playerSockets) {
   var gameEnd = function(winner) {
     io.to(gameID).emit('gameEnd', winner);
     disactivateGameplayListeners(allPlayers);
+    for (var i = 0; i < playerSockets.length; i++) {
+      playerSockets[i].leave(gameID);
+    }
+    delete liveGames[gameID];
+    delete playersByGame[gameID];
+    delete sockets[gameID];
   };
 
-  for (var i = 0; i < players.length; i++) {
-    playerSockets[players[i].playerName].on('targetAcquiredBy', function(playerInfo){
-      var winner = playerInfo.playerName;
-      var gameID = playerInfo.gameID;
-      var player0 = playersByGame[gameID][0].playerName;
-      var player1 = playersByGame[gameID][1].playerName;
+  // new game logic for Swap starts here:
+  whenPlayerOut(function(outPlayerName, outPlayerInfo) {
+    // in this game, this function is mostly needed for
+    // when one player quits or disconnects from game
+    // Remaining player wins
+    playerWins(listAllPlayers()[0]);
+  });
 
-      if (winner === player0 || winner === player1) {
-        io.to(gameID).emit('gameEnd', winner);
-        delete liveGames[gameID];
-        delete playersByGame[gameID];
-        delete sockets[gameID];
-        //io.emit('console.log', liveGames);
-      }
-    });
-  }
+  setUpPlayerQuitListeners();
 
-  targets[players[0].playerName] = players[1];
-  targets[players[1].playerName] = players[0];
-  io.to(gameID).emit('newTarget', targets);
+  whenTargetAcquired(allPlayers, function(playerName, targetName) {
+    playerWins(playerName);
+  });
+
+  // start
+  setCurrentLocationOfAllAsHome(function() {
+    var targetsObj = {};
+    targetsObj[allPlayers[0]] = allPlayers[1];
+    targetsObj[allPlayers[1]] = allPlayers[0];
+    assignNewTargets(targetsObj);
+  });
+
+
+  // old game logic
+  // for (var i = 0; i < players.length; i++) {
+  //   playerSockets[players[i].playerName].on('targetAcquiredBy', function(playerInfo){
+  //     var winner = playerInfo.playerName;
+  //     var gameID = playerInfo.gameID;
+  //     var player0 = playersByGame[gameID][0].playerName;
+  //     var player1 = playersByGame[gameID][1].playerName;
+
+  //     if (winner === player0 || winner === player1) {
+  //       io.to(gameID).emit('gameEnd', winner);
+  //       delete liveGames[gameID];
+  //       delete playersByGame[gameID];
+  //       delete sockets[gameID];
+  //       //io.emit('console.log', liveGames);
+  //     }
+  //   });
+  // }
+
+  // targets[players[0].playerName] = players[1];
+  // targets[players[1].playerName] = players[0];
+  // io.to(gameID).emit('newTarget', targets);
+  //
 };
 
 var gameSettings = {
