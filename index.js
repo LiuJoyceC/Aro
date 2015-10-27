@@ -145,7 +145,9 @@ var SwappingGame = function (players, playerSockets) {
       // between server and client, check that the acquired target sent
       // by client is actually the current target. If not, don't trigger
       // callback, since player has not acquired the current target
+      console.log('acquiredTarget listener got triggered');
       if (targetName === getTargetOf(playerName)) {
+        console.log('and so did the callback');
         callback(playerName, targetName);
       }
     });
@@ -405,10 +407,13 @@ var SwappingGame = function (players, playerSockets) {
   };
 
   var disactivateGameplayListeners = function(playerNames) {
+    console.log('disactivateGameplayListeners got run');
     var playerSocket;
-    for (var i = 0; i < playerNames; i++) {
+    for (var i = 0; i < playerNames.length; i++) {
       playerSocket = playerSockets[playerNames[i]];
+      console.log(playerSocket);
       if (playerSocket) {
+        console.log('listener removers run');
         playerSocket.removeAllListeners('acquiredTarget');
         playerSocket.removeAllListeners('currLocation');
         playerSocket.removeListener('playerQuit', playerOut);
@@ -449,15 +454,16 @@ var SwappingGame = function (players, playerSockets) {
 
   setUpPlayerQuitListeners();
 
-  whenTargetAcquired(allPlayers, function(playerName, targetName) {
+  whenTargetAcquired(listAllPlayers(), function(playerName, targetName) {
     playerWins(playerName);
   });
 
   // start
   setCurrentLocationOfAllAsHome(function() {
     var targetsObj = {};
-    targetsObj[allPlayers[0]] = allPlayers[1];
-    targetsObj[allPlayers[1]] = allPlayers[0];
+    var allPlayersList = listAllPlayers();
+    targetsObj[allPlayersList[0]] = allPlayersList[1];
+    targetsObj[allPlayersList[1]] = allPlayersList[0];
     assignNewTargets(targetsObj);
   });
 
