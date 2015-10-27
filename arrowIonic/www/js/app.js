@@ -109,7 +109,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   };
 
   // # of miles from target player must be to acquire it
-  var targetRadius = 0.0005;
+  var targetRadius = 0.002;
   // var targetRadius = 5;
 
   return {
