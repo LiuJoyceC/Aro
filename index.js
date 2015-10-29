@@ -497,11 +497,12 @@ var gameSettings = {
 
 // Game developer library methods will be added
 // to the prototype in the gameDevelopmentLibrary.js
-var GameLib = exports.GameLib = function(gameID) {
-  this._gameID = gameID;
-  // this.playerSockets = playerSockets;
-  // this._livePlayers = Object.keys(liveGames[gameID]);
-};
+// var GameLib = exports.GameLib = function(gameID) {
+//   this._gameID = gameID;
+//   // this.playerSockets = playerSockets;
+//   // this._livePlayers = Object.keys(liveGames[gameID]);
+// };
+var GameLib = require('./games/gameDevelopmentLibrary').GameLib;
 
 var launchGame = function(gameType, gameID, players) {
   var liveGame = liveGames[gameID] = {};
