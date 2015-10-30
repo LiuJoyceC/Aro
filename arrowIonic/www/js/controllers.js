@@ -147,15 +147,6 @@ angular.module('starter.controllers', [])
   socket.on('gameStart', function() {
     console.log('gameStart triggered');
     $rootScope.gameInSession = true;
-    // var addDistance = function() {
-    //   demoDistanceAdd += 50;
-    //   if (demoDistanceAdd < 4000) {
-    //   setTimeout(addDistance, 1000);
-    //   }
-    // };
-    // if (demo && $rootScope.playerName === 'Taylor') {
-    //   addDistance();
-    // }
     if (demo) {
       $scope.distance = demoStartDistance;
       var decrementDistance = function() {
@@ -246,17 +237,12 @@ angular.module('starter.controllers', [])
 
       here = turf.point([position.coords.latitude, position.coords.longitude]);
       there = turf.point([$scope.targetLocation.latitude, $scope.targetLocation.longitude]);
-      // $scope.bearing = Math.floor(turf.bearing(here, there) - $scope.heading + 90);
-      // $scope.rotation = '-webkit-transform: rotate('+ $scope.bearing +'deg);transform: rotate('+ $scope.bearing +'deg);';
+
       if (!demo) {
         $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(4);
         if ($scope.distance < options.targetRadius && !$scope.targetAcquired && !$scope.playerIsOut) {
           $scope.distance = 0;
           $scope.targetAcquired = true;
-          // socket.emit('targetAcquiredBy', {
-          //   playerName: $rootScope.playerName,
-          //   gameID: $rootScope.gameID
-          // });
           socket.emit('acquiredTarget', $scope.targetName);
           console.log('acquiredTarget emitted');
         }
@@ -328,6 +314,11 @@ angular.module('starter.controllers', [])
     console.log($scope.publicGames);
   });
 
+  socket.on('gamesInfo', function(gamesInfo) {
+    console.log(gamesInfo);
+    $scope.gamesInfo = gamesInfo; // need to do something with this
+  });
+
   $scope.selectCreate = function() {
     $scope.selectedJoin = false;
     $scope.selectedCreate = true;
@@ -379,7 +370,7 @@ angular.module('starter.controllers', [])
           $scope.playerObj.newGame = {
             isPrivate: $scope.createdGame.isPrivate,
             gameType: options.gameTypes[$scope.createdGame.gameTypeIndex].name
-          }
+          };
         }
         // assume that the server will join the client to the gameID room
         // when the client emits a 'gameEnter'
@@ -413,7 +404,6 @@ angular.module('starter.controllers', [])
       playerName: $scope.playerName,
       gameID: $rootScope.gameID
     });
-
 
   };
 

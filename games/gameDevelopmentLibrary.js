@@ -2,19 +2,13 @@ var server = require('../index');
 var liveGames = server.liveGames;
 var sockets = server.sockets;
 var io = server.io;
-// var GameLib = server.GameLib;
-// var gameMenu = ('./gameMenu');
 
 var playerOutCallbacks = {};
 var disconnectCallbacks = {};
 
 var GameLib = exports.GameLib = function(gameID) {
   this._gameID = gameID;
-  // this.playerSockets = playerSockets;
-  // this._livePlayers = Object.keys(liveGames[gameID]);
 };
-
-
 
 /* Helper functions (not part of game dev library) */
 
@@ -38,7 +32,6 @@ var setUpPlayerQuitListeners = function(gameID, playerOut) {
   for (var playerName in playerSockets) {
     playerSocket = playerSockets[playerName];
     playerSocket.on('playerQuit', playerOut);
-    // playerSocket.on('disconnect', playerOut);
     setUpDisconnectListeners(playerName, gameID, playerOut);
   }
 };
@@ -138,11 +131,6 @@ var gameEnd = function(winner, gameID, playerOut) {
   delete disconnectCallbacks[gameID];
 };
 
-
-
-
-
-
 /* Game Dev Library */
 
 GameLib.prototype.startGame = function() {
@@ -172,26 +160,9 @@ GameLib.prototype.startGame = function() {
           break;
         }
       }
-      // var isTargetOf = playerInfo.isTargetOf;
+
       delete liveGames[gameID][playerName];
 
-      // var playerInd = this._livePlayers.indexOf(playerName);
-      // if (playerInd !== -1) {
-      //   this._livePlayers.splice(playerInd, 1);
-      // }
-
-    //   var len = isTargetOf.length;
-    //   // If the player's pursuers have not already been reassigned
-    //   // targets, then by default they will now be targeting the
-    //   // player's current target. However, it is recommended that
-    //   // the game logic always reassigns targets before calling playerOut
-    //   if (len) {
-    //     var targetsObj = {};
-    //     for (var j = 0; j < isTargetOf.length; j++) {
-    //       targetsObj[isTargetOf[j]] = currTargetName;
-    //     }
-    //     assignNewTargets(targetsObj); //next-callback? not needed anymore
-    //   }
       playerOutCallbacks[gameID](playerName, playerInfo);
     }
 
@@ -279,9 +250,7 @@ GameLib.prototype.isTargeting = function(targetName) {
   console.log('isTargeting got run');
   var gameID = this._gameID;
   if (playerInGame(targetName, gameID)) {
-    // should I give open-source community copy instead so they can't
-    // mess with this?
-    return liveGames[gameID][targetName].isTargetOf;
+    return liveGames[gameID][targetName].isTargetOf.slice();
   }
 };
 
@@ -289,9 +258,11 @@ GameLib.prototype.getHomeLocationOf = function(playerName) {
   console.log('getHomeLocationOf got run');
   var gameID = this._gameID;
   if (playerInGame(playerName, gameID)) {
-    // should I give open-source community copy instead so they can't
-    // mess with this?
-    return liveGames[gameID][playerName].home;
+    var home = liveGames[gameID][playerName].home;
+    return {
+      latitude: home.latitude,
+      longitude: home.longitude
+    };
   }
 };
 
