@@ -278,9 +278,9 @@ angular.module('starter.controllers', [])
   var chars = codeOptions.chars;
   var privateGameCodes = {};
 
-  $scope.gameTypes = options.gameTypes;
+  // $scope.gameTypes = options.gameTypes;
   $scope.publicGames = {noGames: true};
-  $scope.createdGame = {};
+  $scope.createdGame = {isPrivate: false};
   $scope.register = {};
   $scope.game = {};
   // $scope.now = new Date();
@@ -317,6 +317,7 @@ angular.module('starter.controllers', [])
   socket.on('gamesInfo', function(gamesInfo) {
     console.log(gamesInfo);
     $scope.gamesInfo = gamesInfo; // need to do something with this
+    $scope.createdGame.gameType = Object.keys(gamesInfo)[0];
   });
 
   $scope.selectCreate = function() {
@@ -359,7 +360,7 @@ angular.module('starter.controllers', [])
           latitude: currentPosition.coords.latitude,
           longitude: currentPosition.coords.longitude
         };
-
+        console.log('$scope.createdGame', $scope.createdGame);
         $scope.playerObj = {
           location: $rootScope.location,
           playerName: $scope.playerName,
@@ -369,7 +370,7 @@ angular.module('starter.controllers', [])
         if (createNew) {
           $scope.playerObj.newGame = {
             isPrivate: $scope.createdGame.isPrivate,
-            gameType: options.gameTypes[$scope.createdGame.gameTypeIndex].name
+            gameType: $scope.createdGame.gameType
           };
         }
         // assume that the server will join the client to the gameID room

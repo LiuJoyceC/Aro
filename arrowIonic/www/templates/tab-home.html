@@ -39,7 +39,7 @@
               <!-- Select whether the game will be public or private -->
               Choose public or private game
             </div>
-            <select ng-init="createdGame.isPrivate=false" ng-model="createdGame.isPrivate">
+            <select ng-model="createdGame.isPrivate">
               <option value="false" ng-selected="true">Public</option>
               <option value="true">Private</option>
             </select>
@@ -53,8 +53,8 @@
         <div class="list">
           <label class="item item-input item-select">
             <div class="input-label">Select game</div>
-            <select ng-init="createdGame.gameTypeIndex=0" name="selectGameType" ng-model="createdGame.gameTypeIndex">
-              <option ng-repeat="gameType in gameTypes" value="{{ $index }}" ng-selected="$first">{{ gameType.displayName }}</option>
+            <select name="selectGameType" ng-model="createdGame.gameType">
+              <option ng-repeat="(gameType, gameInfo) in gamesInfo" value="{{ gameType }}" ng-selected="$first">{{ gameInfo.name }}</option>
             </select>
           </label>
         </div>

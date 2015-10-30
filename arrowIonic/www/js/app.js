@@ -93,14 +93,14 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 .factory('options', function() {
   // will do a get request for the game types, since game types
   // will be in server. Fon now just hard-coded
-  var gameTypes = [
-    {
-      displayName: 'Swap',
-      name: 'SwappingGame',
-      minPlayers: 2,
-      maxPlayers: 2
-    }
-  ];
+  // var gameTypes = [
+  //   {
+  //     displayName: 'Swap',
+  //     name: 'SwappingGame',
+  //     minPlayers: 2,
+  //     maxPlayers: 2
+  //   }
+  // ];
 
   var codeOptions = {
     chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
@@ -119,7 +119,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
     demo: demo,
     demoStartDistance: demoStartDistance,
     codeOptions: codeOptions,
-    gameTypes: gameTypes,
+    // gameTypes: gameTypes,
     targetRadius: targetRadius,
   };
 });
