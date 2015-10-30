@@ -6,6 +6,7 @@ var io = server.io;
 // var gameMenu = ('./gameMenu');
 
 var playerOutCallbacks = {};
+var disconnectCallbacks = {};
 
 var GameLib = exports.GameLib = function(gameID) {
   this._gameID = gameID;
@@ -31,13 +32,24 @@ var playerInGame = function(playerName, gameID) {
 // must be run before game logic
 var setUpPlayerQuitListeners = function(gameID, playerOut) {
   console.log('setUpPlayerQuitListeners got run');
+  disconnectCallbacks[gameID] = {};
   var playerSockets = sockets[gameID];
   var playerSocket;
   for (var playerName in playerSockets) {
     playerSocket = playerSockets[playerName];
     playerSocket.on('playerQuit', playerOut);
-    playerSocket.on('disconnect', playerOut);
+    // playerSocket.on('disconnect', playerOut);
+    setUpDisconnectListeners(playerName, gameID, playerOut);
   }
+};
+
+// helper function for setUpPlayerQuitListeners
+var setUpDisconnectListeners = function(playerName, gameID, playerOut) {
+  var playerDisconnectCallback = function() {
+    playerOut(playerName);
+  };
+  disconnectCallbacks[gameID][playerName] = playerDisconnectCallback;
+  sockets[gameID][playerName].on('disconnect', playerDisconnectCallback);
 };
 
 // Only used as helper function for whenTargetAcquired
@@ -51,7 +63,7 @@ var setUpAcquiredTargetListener = function(playerName, gameID, getTargetOf, call
     // between server and client, check that the acquired target sent
     // by client is actually the current target. If not, don't trigger
     // callback, since player has not acquired the current target
-    console.log('acquiredTarget listener got triggered');
+    console.log('acquiredTarget listener got triggered, player is ' + playerName + ', target is ' + targetName);
     if (targetName === getTargetOf(playerName)) {
       console.log('and so did the callback');
       callback(playerName, targetName);
@@ -97,13 +109,14 @@ var disactivateGameplayListeners = function(playerNames, gameID, playerOut) {
   console.log('disactivateGameplayListeners got run');
   var playerSocket;
   for (var i = 0; i < playerNames.length; i++) {
-    playerSocket = sockets[gameID][playerNames[i]];
+    var playerName = playerNames[i];
+    playerSocket = sockets[gameID][playerName];
     if (playerSocket) {
       console.log('listener removers run');
       playerSocket.removeAllListeners('acquiredTarget');
       playerSocket.removeAllListeners('currLocation');
       playerSocket.removeListener('playerQuit', playerOut);
-      playerSocket.removeListener('disconnect', playerOut);
+      playerSocket.removeListener('disconnect', disconnectCallbacks[gameID][playerName]);
     }
   }
 };
@@ -122,6 +135,7 @@ var gameEnd = function(winner, gameID, playerOut) {
   // delete playersByGame[gameID];
   delete sockets[gameID];
   delete playerOutCallbacks[gameID];
+  delete disconnectCallbacks[gameID];
 };
 
 
@@ -141,7 +155,12 @@ GameLib.prototype.startGame = function() {
     if (typeof playerName === 'object') {
       playerName = playerName.playerName;
     }
+    console.log('playerName', playerName);
+    console.log('gameID', gameID);
+    console.log(liveGames[gameID]);
+    console.log(liveGames[gameID][playerName]);
     if (playerInGame(playerName, gameID)) {
+      console.log('playerInGame(' + playerName + ')');
       disactivateGameplayListeners([playerName], gameID, library.playerOut);
       io.to(gameID).emit('playerOut', playerName);
       var playerInfo = liveGames[gameID][playerName];

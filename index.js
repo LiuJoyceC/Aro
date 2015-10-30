@@ -78,8 +78,8 @@ io.on('connection', function(socket){
       var gameType = lobby[gameID].gameType;
       // var numJoined = players.length;
 
-      if (players.length === gameSettings[gameType].maxPlayers) {
-        io.emit('gameStart', gameID);
+      if (players.length === gameMenu[gameType].maxPlayers) {
+        io.to(gameID).emit('gameStart', gameID);
         // // call the gameType function passing in player array
         // var liveGame = liveGames[gameID] = {};
         // var joinedPlayer;
@@ -491,9 +491,7 @@ io.on('connection', function(socket){
 //   //
 // };
 
-var gameSettings = {
-  SwappingGame: require('./games/gameFiles/Swap')
-};
+var gameMenu = require('./games/gameMenu').gameMenu;
 
 // Game developer library methods will be added
 // to the prototype in the gameDevelopmentLibrary.js
@@ -518,7 +516,7 @@ var launchGame = function(gameType, gameID, players) {
   }
   // playersByGame[gameID] = players;
   delete lobby[gameID];
-  gameSettings[gameType].play(new GameLib(gameID));
+  gameMenu[gameType].play(new GameLib(gameID));
 }
 
 http.listen(port, function(){

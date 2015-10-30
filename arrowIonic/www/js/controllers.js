@@ -123,7 +123,8 @@ angular.module('starter.controllers', [])
 
 .controller('CompassCtrl', function($rootScope, $scope, $state, $cordovaDeviceOrientation, $cordovaGeolocation, $ionicScrollDelegate, socket, options) {
 
-  var demo = false;
+  var demo = options.demo;
+  var demoStartDistance = options.demoStartDistance;
   //var demoDistanceAdd = 0;
 
   $rootScope.$watch('hasJoinedGame', function() {
@@ -156,7 +157,7 @@ angular.module('starter.controllers', [])
     //   addDistance();
     // }
     if (demo) {
-      $scope.distance = 10;
+      $scope.distance = demoStartDistance;
       var decrementDistance = function() {
         $scope.distance -= Math.random();
         console.log($scope.distance);
@@ -187,6 +188,9 @@ angular.module('starter.controllers', [])
       $scope.targetHasBeenUpdated = true;
       $scope.targetName = target.playerName;
       $scope.targetLocation = target.location;
+      if (demo) {
+        $scope.distance = demoStartDistance;
+      }
     }
     setTimeout(function() {
       $scope.targetHasBeenUpdated = false;
