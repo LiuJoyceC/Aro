@@ -2,7 +2,7 @@ var server = require('../index');
 var liveGames = server.liveGames;
 var sockets = server.sockets;
 var io = server.io;
-
+console.log('server', server);
 var playerOutCallbacks = {};
 var disconnectCallbacks = {};
 
@@ -236,6 +236,24 @@ GameLib.prototype.listRemainingPlayers = function() {
   // any changes made to the array will not affect
   // the object from which the keys are retrieved
   return Object.keys(liveGames[this._gameID]);
+};
+
+GameLib.prototype.randomPlayer = function() {
+  var remainingPlayers = Object.keys(liveGames[this._gameID]);
+  var randInd = Math.floor(Math.random()*remainingPlayers.length);
+  return remainingPlayers[randInd];
+};
+
+GameLib.prototype.listRemainingPlayersInRandomOrder = function() {
+  var remainingPlayers = Object.keys[liveGames[this._gameID]];
+  var randomizedList = [];
+  var randInd;
+  while (remainingPlayers.length) {
+    randInd = Math.floor(Math.random()*remainingPlayers.length);
+    randomizedList.push(remainingPlayers[randInd]);
+    remainingPlayers.splice(randInd, 1);
+  }
+  return randomizedList;
 };
 
 GameLib.prototype.getTargetOf = function(playerName) {

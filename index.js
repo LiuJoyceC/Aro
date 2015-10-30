@@ -1,13 +1,20 @@
 var app = require('express')();
 var http = require('http').Server(app);
+console.log('io about to be assigned');
 var io = exports.io = require('socket.io')(http);
+console.log('io assigned');
 var port = process.env.PORT || 3000;
+
+var lobby = {};
+console.log('liveGames and sockets about to be assigned');
+var liveGames = exports.liveGames = {};
+var sockets = exports.sockets = {};
+console.log('liveGames and sockets assigned');
+console.log('exports', exports);
+
 var gameMenu = require('./games/gameMenu').gameMenu;
 var GameLib = require('./games/gameDevelopmentLibrary').GameLib;
 
-var lobby = {};
-var liveGames = exports.liveGames = {};
-var sockets = exports.sockets = {};
 var gamesInfo = {};
 for (var game in gameMenu) {
   gamesInfo[game] = gameMenu[game].gameInfo;
@@ -26,7 +33,7 @@ io.on('connection', function(socket){
     var gameID = playerInfo.gameID;
 
     if (lobby[gameID]) {
-      console.log('old lobby game: ', lobby[gameID]);
+      // console.log('old lobby game: ', lobby[gameID]);
       var players = lobby[gameID].players;
       var playerNames = players.map(function(player) {
         return player.playerName;
@@ -38,7 +45,7 @@ io.on('connection', function(socket){
           delete lobby[gameID];
           delete sockets[gameID];
         }
-        console.log('new lobby game: ', lobby[gameID]);
+        // console.log('new lobby game: ', lobby[gameID]);
         io.emit('updateLobby', lobby);
       }
     }
@@ -67,14 +74,15 @@ io.on('connection', function(socket){
       var gameType = lobby[gameID].gameType;
       // var numJoined = players.length;
 
-      if (players.length === gameMenu[gameType].maxPlayers) {
+        console.log('gameType', gameType);
+      if (players.length === gameMenu[gameType].gameInfo.maxPlayers) {
         io.to(gameID).emit('gameStart', gameID);
         launchGame(gameType, gameID, players);
       }
     } else {
       // emit some kind of indicator that game is no longer available
     }
-    console.log('lobby', JSON.stringify(lobby));
+    // console.log('lobby', JSON.stringify(lobby));
     io.emit('updateLobby', lobby);
 
   });
@@ -91,6 +99,7 @@ io.on('connection', function(socket){
 });
 
 var launchGame = function(gameType, gameID, players) {
+  console.log('launchGame got run');
   var liveGame = liveGames[gameID] = {};
   var joinedPlayer;
   for (var j = 0; j < players.length; j++) {
