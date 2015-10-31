@@ -147,22 +147,6 @@ angular.module('starter.controllers', [])
   socket.on('gameStart', function() {
     console.log('gameStart triggered');
     $rootScope.gameInSession = true;
-    if (demo) {
-      $scope.distance = demoStartDistance;
-      var decrementDistance = function() {
-        $scope.distance -= Math.random();
-        console.log($scope.distance);
-        if ($scope.distance < options.targetRadius && !$scope.targetAcquired && !$scope.playerIsOut) {
-          $scope.distance = 0;
-          $scope.targetAcquired = true;
-          socket.emit('acquiredTarget', $scope.targetName);
-          console.log('acquiredTarget emitted');
-        } else {
-          setTimeout(decrementDistance, 1000)
-        }
-      }
-      decrementDistance();
-    }
   });
 
   socket.on('getCurrLocation', function(playerNames) {
@@ -179,19 +163,35 @@ angular.module('starter.controllers', [])
       $scope.targetHasBeenUpdated = true;
       $scope.targetName = target.playerName;
       $scope.targetLocation = target.location;
+      console.log('new target is ' + target.playerName);
       if (demo) {
         $scope.distance = demoStartDistance;
+        var decrementDistance = function() {
+          $scope.distance -= Math.random();
+          console.log($scope.distance);
+          if (!$scope.playerIsOut && $scope.distance < options.targetRadius) {
+            $scope.distance = 0;
+            $scope.targetAcquired = true;
+            socket.emit('acquiredTarget', $scope.targetName);
+            console.log('acquiredTarget emitted');
+          } else if (!$scope.playerIsOut){
+            setTimeout(decrementDistance, 3000)
+          }
+        }
+        decrementDistance();
       }
+      setTimeout(function() {
+        $scope.targetHasBeenUpdated = false;
+        $scope.targetAcquired = false;
+      }, 1000);
     }
-    setTimeout(function() {
-      $scope.targetHasBeenUpdated = false;
-      $scope.targetAcquired = false;
-    }, 1000);
   });
 
   socket.on('playerOut', function(playerName) {
     if (playerName === $rootScope.playerName) {
+      console.log(playerName + ' is out!');
       $rootScope.playerIsOut = $scope.playerIsOut = true;
+      console.log('playerIsOut', $scope.playerIsOut);
     }
   });
 
@@ -316,11 +316,27 @@ angular.module('starter.controllers', [])
 
   socket.on('gamesInfo', function(gamesInfo) {
     console.log(gamesInfo);
-    $scope.gamesInfo = gamesInfo; // need to do something with this
+    $scope.gamesInfo = gamesInfo;
     $scope.createdGame.gameType = Object.keys(gamesInfo)[0];
   });
 
+  socket.on('gameJoinSuccess', function() {
+    $rootScope.hasJoinedGame = true;
+    $scope.hasJoinedGame = true;
+    $scope.joining = false;
+    // switch tabs to game tab
+    $state.go('tab.compass');
+  });
+
+  socket.on('gameJoinFailure', function() {
+    $scope.joining = false;
+    $scope.game.notExist = true;
+  });
+
   $scope.selectCreate = function() {
+    if (!$scope.gamesInfo) {
+      socket.emit('requestGamesInfo');
+    }
     $scope.selectedJoin = false;
     $scope.selectedCreate = true;
   };
@@ -344,6 +360,7 @@ angular.module('starter.controllers', [])
       // checks if already exists
     } else {
       gameID = gameID.toUpperCase();
+      console.log('gameID', gameID);
       if (!(privateGameCodes[gameID] || $scope.publicGames[gameID])) {
         $scope.joining = false;
         $scope.game.notExist = true;
@@ -376,15 +393,6 @@ angular.module('starter.controllers', [])
         // assume that the server will join the client to the gameID room
         // when the client emits a 'gameEnter'
         socket.emit('gameEnter', $scope.playerObj);
-
-        // for now, set to async, but if we change to having any checks
-        // on whether gameID exists, then will need to move into callback
-        // function for socket.
-        $rootScope.hasJoinedGame = true;
-        $scope.hasJoinedGame = true;
-        $scope.joining = false;
-        $state.go('tab.compass');
-        // switch tabs to game tab
       });
     }
   };

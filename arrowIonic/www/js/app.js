@@ -113,7 +113,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   // var targetRadius = 5;
 
   var demo = true;
-  var demoStartDistance = 10;
+  var demoStartDistance = 4;
 
   return {
     demo: demo,

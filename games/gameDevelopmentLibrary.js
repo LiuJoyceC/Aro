@@ -2,7 +2,6 @@ var server = require('../index');
 var liveGames = server.liveGames;
 var sockets = server.sockets;
 var io = server.io;
-console.log('server', server);
 var playerOutCallbacks = {};
 var disconnectCallbacks = {};
 
@@ -14,7 +13,7 @@ var GameLib = exports.GameLib = function(gameID) {
 
 // helper function only
 var playerInGame = function(playerName, gameID) {
-  console.log('playerInGame got run');
+  console.log('playerInGame got run', playerName);
   var liveGame = liveGames[gameID];
   if (typeof playerName === 'string' && liveGame && liveGame[playerName]) {
     return playerName;
@@ -39,6 +38,7 @@ var setUpPlayerQuitListeners = function(gameID, playerOut) {
 // helper function for setUpPlayerQuitListeners
 var setUpDisconnectListeners = function(playerName, gameID, playerOut) {
   var playerDisconnectCallback = function() {
+    console.log(playerName + ' got disconnected');
     playerOut(playerName);
   };
   disconnectCallbacks[gameID][playerName] = playerDisconnectCallback;
@@ -48,7 +48,7 @@ var setUpDisconnectListeners = function(playerName, gameID, playerOut) {
 // Only used as helper function for whenTargetAcquired
 // can assume playerName is valid player still in game
 var setUpAcquiredTargetListener = function(playerName, gameID, getTargetOf, callback) {
-  console.log('setUpAcquiredTargetListener got run');
+  console.log('setUpAcquiredTargetListener got run', playerName);
   var playerSocket = sockets[gameID][playerName];
   playerSocket.removeAllListeners('acquiredTarget');
   playerSocket.on('acquiredTarget', function(targetName) {
@@ -66,7 +66,7 @@ var setUpAcquiredTargetListener = function(playerName, gameID, getTargetOf, call
 
 // helper function only
 var setUpCurrLocationListener = function(playerName, gameID, callback) {
-  console.log('setUpCurrLocationListener got run');
+  console.log('setUpCurrLocationListener got run', playerName);
   // need to set this up on the client side
   var playerSocket = sockets[gameID][playerName];
   playerSocket.removeAllListeners('currLocation');
@@ -79,7 +79,7 @@ var setUpCurrLocationListener = function(playerName, gameID, callback) {
 // can assume playerName is valid player still in game and that
 // targetName is either valid player still in game or targetName === false
 var updateTargets = function(playerName, targetName, gameID) {
-  console.log('updateTargets got run');
+  console.log('updateTargets got run', playerName);
   var liveGame = liveGames[gameID];
   var oldTarget = liveGame[liveGame[playerName].target];
   // if player has a current target, will delete player from
@@ -120,7 +120,10 @@ var gameEnd = function(winner, gameID, playerOut) {
   console.log('gameEnd got run');
   io.to(gameID).emit('gameEnd', winner);
   var playerSockets = sockets[gameID];
-  disactivateGameplayListeners(Object.keys(liveGames[gameID]), gameID, playerOut);
+  var liveGame = liveGames[gameID];
+  if (liveGame) {
+    disactivateGameplayListeners(Object.keys(liveGames[gameID]), gameID, playerOut);
+  }
   for (var playerName in playerSockets) {
     playerSockets[playerName].leave(gameID);
   }
@@ -139,7 +142,7 @@ GameLib.prototype.startGame = function() {
   var library = this;
 
   this.playerOut = function(playerName) {
-    console.log('playerOut got run');
+    console.log('playerOut got run', playerName);
     if (typeof playerName === 'object') {
       playerName = playerName.playerName;
     }
@@ -150,6 +153,9 @@ GameLib.prototype.startGame = function() {
     if (playerInGame(playerName, gameID)) {
       console.log('playerInGame(' + playerName + ')');
       disactivateGameplayListeners([playerName], gameID, library.playerOut);
+      // may change to just socket.emit, but keeping this for now in case
+      // the client may be changed to do something with this info even if
+      // the client does not belong to the outPlayer
       io.to(gameID).emit('playerOut', playerName);
       var playerInfo = liveGames[gameID][playerName];
       var currTargetName = playerInfo.target;
@@ -178,24 +184,23 @@ GameLib.prototype.startGame = function() {
 
 // Only one playerOutCallback for a game can be defined at a time,
 // if whenPlayerOut is called again, playerOutCallback replaced
-// callback(outPlayerName, outPlayerInfo)
+// callback(outPlayerName, outPlayerInfo, done)
 // if at the end of the callback the game hasn't ended and there
 // are players still targeting the outPlayer, those players will
 // now get assigned no target
 // may later add team or role as a parameter
 GameLib.prototype.whenPlayerOut = function(callback) {
   console.log('whenPlayerOut got run');
-  callback = callback || function() {};
+  callback = callback || function(name, info, done) {done();};
   var gameID = this._gameID;
   var library = this;
-  playerOutCallbacks[gameID] = function(outPlayerName, outPlayerInfo) {
-    console.log('playerOutCallback got run');
-    callback(outPlayerName, outPlayerInfo);
-    // if game has not already been ended in callback
+  var done = function() {
+    console.log('whenPlayerOut callback done got run');
+    // if game hasn't already been ended in callback
     if (liveGames[gameID]) {
       var livePlayers = library.listRemainingPlayers();
-      if (livePlayers.length === 1) {
-        playerWins(livePlayers[0]);
+      if (livePlayers.length === 0) {
+        library.gameOver();
       } else {
         var targetsObj = {};
         for (var i = 0; i < livePlayers.length; i++) {
@@ -204,9 +209,16 @@ GameLib.prototype.whenPlayerOut = function(callback) {
             targetsObj[playerName] = false;
           }
         }
-        library.assignNewTargets(targetsObj);
+        if (Object.keys(targetsObj).length) {
+          console.log('player is about to get assigned to false target');
+          library.assignNewTargets(targetsObj);
+        }
       }
     }
+  };
+  playerOutCallbacks[gameID] = function(outPlayerName, outPlayerInfo) {
+    console.log('playerOutCallback got run');
+    callback(outPlayerName, outPlayerInfo, done);
   };
 };
 
@@ -235,29 +247,42 @@ GameLib.prototype.listRemainingPlayers = function() {
   console.log('listRemainingPlayers got run');
   // any changes made to the array will not affect
   // the object from which the keys are retrieved
-  return Object.keys(liveGames[this._gameID]);
+  var liveGame = liveGames[this._gameID];
+  if (liveGame) {
+    console.log(Object.keys(liveGames[this._gameID]));
+    return Object.keys(liveGames[this._gameID]);
+  } else {
+    return [];
+  }
 };
 
 GameLib.prototype.randomPlayer = function() {
-  var remainingPlayers = Object.keys(liveGames[this._gameID]);
-  var randInd = Math.floor(Math.random()*remainingPlayers.length);
-  return remainingPlayers[randInd];
+  var liveGame = liveGames[this._gameID];
+  if (liveGame) {
+    var remainingPlayers = Object.keys(liveGame);
+    var randInd = Math.floor(Math.random()*remainingPlayers.length);
+    return remainingPlayers[randInd];
+  }
 };
 
 GameLib.prototype.listRemainingPlayersInRandomOrder = function() {
-  var remainingPlayers = Object.keys[liveGames[this._gameID]];
   var randomizedList = [];
-  var randInd;
-  while (remainingPlayers.length) {
-    randInd = Math.floor(Math.random()*remainingPlayers.length);
-    randomizedList.push(remainingPlayers[randInd]);
-    remainingPlayers.splice(randInd, 1);
+  var liveGame = liveGames[this._gameID];
+  if (liveGame) {
+    var remainingPlayers = Object.keys(liveGames[this._gameID]);
+    var randInd;
+    while (remainingPlayers.length) {
+      randInd = Math.floor(Math.random()*remainingPlayers.length);
+      randomizedList.push(remainingPlayers[randInd]);
+      remainingPlayers.splice(randInd, 1);
+    }
   }
+  console.log('randomizedList', randomizedList);
   return randomizedList;
 };
 
 GameLib.prototype.getTargetOf = function(playerName) {
-  console.log('getTargetOf got run');
+  console.log('getTargetOf got run', playerName);
   var gameID = this._gameID;
   if (playerInGame(playerName, gameID)) {
     return liveGames[gameID][playerName].target;
@@ -265,7 +290,7 @@ GameLib.prototype.getTargetOf = function(playerName) {
 };
 
 GameLib.prototype.isTargeting = function(targetName) {
-  console.log('isTargeting got run');
+  console.log('isTargeting got run', targetName);
   var gameID = this._gameID;
   if (playerInGame(targetName, gameID)) {
     return liveGames[gameID][targetName].isTargetOf.slice();
@@ -273,7 +298,7 @@ GameLib.prototype.isTargeting = function(targetName) {
 };
 
 GameLib.prototype.getHomeLocationOf = function(playerName) {
-  console.log('getHomeLocationOf got run');
+  console.log('getHomeLocationOf got run', playerName);
   var gameID = this._gameID;
   if (playerInGame(playerName, gameID)) {
     var home = liveGames[gameID][playerName].home;
@@ -297,6 +322,7 @@ GameLib.prototype.assignNewTarget = function(playerName, targetName) { // next-c
 
 GameLib.prototype.assignNewTargets = function(targetsObj) { //next-callback?
   console.log('assignNewTargets got run');
+  console.log(targetsObj);
   var emitObj = {};
   var gameID = this._gameID;
   for (var playerName in targetsObj) {
@@ -393,7 +419,7 @@ GameLib.prototype.setCurrentLocationOfAllAsHome = function(next) {
 };
 
 GameLib.prototype.playerWins = function(playerName) {
-  console.log('playerWins got run');
+  console.log('playerWins got run', playerName);
   var gameID = this._gameID;
   if (playerInGame(playerName, gameID)) {
     gameEnd(playerName, gameID, this.playerOut);

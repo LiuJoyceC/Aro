@@ -1,16 +1,11 @@
 var app = require('express')();
 var http = require('http').Server(app);
-console.log('io about to be assigned');
 var io = exports.io = require('socket.io')(http);
-console.log('io assigned');
 var port = process.env.PORT || 3000;
 
 var lobby = {};
-console.log('liveGames and sockets about to be assigned');
 var liveGames = exports.liveGames = {};
 var sockets = exports.sockets = {};
-console.log('liveGames and sockets assigned');
-console.log('exports', exports);
 
 var gameMenu = require('./games/gameMenu').gameMenu;
 var GameLib = require('./games/gameDevelopmentLibrary').GameLib;
@@ -22,26 +17,33 @@ for (var game in gameMenu) {
 
 io.on('connection', function(socket){
   console.log('user connected');
-  io.emit('updateLobby', lobby);
+  // io.emit('updateLobby', lobby);
+  socket.emit('updateLobby', lobby);
   socket.emit('gamesInfo', gamesInfo);
 
   var gamePlayerInfo = {};
 
   var quitGame = function(playerInfo){
-    console.log('a player quit!');
+    // console.log('a player quit!');
     var quitter = playerInfo.playerName;
+    console.log(quitter + ' quit!');
     var gameID = playerInfo.gameID;
 
     if (lobby[gameID]) {
+      console.log('lobby[gameID] exists');
       // console.log('old lobby game: ', lobby[gameID]);
       var players = lobby[gameID].players;
+      console.log(players);
       var playerNames = players.map(function(player) {
         return player.playerName;
       });
       var playerInd = playerNames.indexOf(quitter);
+      console.log('playerInd: ', playerInd);
       if (playerInd !== -1) {
         players.splice(playerInd, 1);
+        console.log(players);
         if (players.length === 0) {
+          console.log('delete lobby[gameID] got run');
           delete lobby[gameID];
           delete sockets[gameID];
         }
@@ -58,11 +60,16 @@ io.on('connection', function(socket){
     console.log('gameEnter received');
     var gameID = player.gameID;
     var newGame = player.newGame;
+    var gameType;
     if (newGame) {
-      lobby[gameID] = {players: [], gameType: player.newGame.gameType, isPrivate: player.newGame.isPrivate};
-      sockets[gameID] = {};
+      gameType = player.newGame.gameType;
+      if (gameMenu[gameType]) {
+        lobby[gameID] = {players: [], gameType: gameType, isPrivate: player.newGame.isPrivate};
+        sockets[gameID] = {};
+      }
     }
     if (lobby[gameID]) {
+      socket.emit('gameJoinSuccess');
       socket.join(gameID);
       // emit indicator that player successfully joined?
       var playerName = player.playerName;
@@ -75,16 +82,22 @@ io.on('connection', function(socket){
       // var numJoined = players.length;
 
         console.log('gameType', gameType);
-      if (players.length === gameMenu[gameType].gameInfo.maxPlayers) {
+      if (gameMenu[gameType] && players.length === gameMenu[gameType].gameInfo.maxPlayers) {
+        delete lobby[gameID];
         io.to(gameID).emit('gameStart', gameID);
         launchGame(gameType, gameID, players);
       }
     } else {
       // emit some kind of indicator that game is no longer available
+      socket.emit('gameJoinFailure');
     }
     // console.log('lobby', JSON.stringify(lobby));
     io.emit('updateLobby', lobby);
 
+  });
+
+  socket.on('requestGamesInfo', function() {
+    socket.emit('gamesInfo', gamesInfo);
   });
 
   socket.on('disconnect', function() {
@@ -94,6 +107,7 @@ io.on('connection', function(socket){
     socket.removeAllListeners('gameEnter');
     socket.removeAllListeners('targetAcquiredBy'); // not needed
     socket.removeAllListeners('acquiredTarget');
+    socket.removeAllListeners('requestGamesInfo');
     socket.removeAllListeners('disconnect');
   });
 });
@@ -110,8 +124,9 @@ var launchGame = function(gameType, gameID, players) {
       home: joinedPlayer.location
     };
   }
-  delete lobby[gameID];
+  console.log('players', players);
   gameMenu[gameType].play(new GameLib(gameID));
+
 }
 
 http.listen(port, function(){

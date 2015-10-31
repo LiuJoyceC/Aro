@@ -15,7 +15,7 @@ function Assassins(lib) {
 
   lib.startGame();
 
-  lib.whenPlayerOut(function(outPlayerName, outPlayerInfo) {
+  lib.whenPlayerOut(function(outPlayerName, outPlayerInfo, done) {
     lib.setCurrentLocationOfAllAsHome(function() {
       var remainingPlayers = lib.listRemainingPlayers();
       var numPlayers = remainingPlayers.length;
@@ -29,10 +29,12 @@ function Assassins(lib) {
             targetsObj[playerName] = lib.getTargetOf(playerName);
           }
         }
+        console.log('about to assign real new targets');
         lib.assignNewTargets(targetsObj);
       } else {
         lib.playerWins(remainingPlayers[0]);
       }
+      done();
     });
   });
 
