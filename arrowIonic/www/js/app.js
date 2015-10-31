@@ -82,8 +82,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 .factory('socket', function(socketFactory) {
   // Create socket, connect to url (must change url here)
   // var myIoSocket = io.connect('https://arogames.herokuapp.com/');
-  // var myIoSocket = io.connect('https://immense-harbor-7864.herokuapp.com/');
-  var myIoSocket = io.connect('localhost:3000/');
+  var myIoSocket = io.connect('https://immense-harbor-7864.herokuapp.com/');
+  // var myIoSocket = io.connect('localhost:3000/');
 
   return socketFactory({
     ioSocket: myIoSocket
@@ -112,7 +112,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   var targetRadius = 0.03;
   // var targetRadius = 5;
 
-  var demo = true;
+  var demo = false;
   var demoStartDistance = 4;
 
   return {
