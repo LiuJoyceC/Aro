@@ -81,7 +81,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 
 .factory('socket', function(socketFactory) {
   // Create socket, connect to url (must change url here)
-  var myIoSocket = io.connect('https://arogames.herokuapp.com/');
+  // var myIoSocket = io.connect('https://arogames.herokuapp.com/');
+  var myIoSocket = io.connect('https://immense-harbor-7864.herokuapp.com/');
+  // var myIoSocket = io.connect('localhost:3000/');
 
   return socketFactory({
     ioSocket: myIoSocket
@@ -91,14 +93,14 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
 .factory('options', function() {
   // will do a get request for the game types, since game types
   // will be in server. Fon now just hard-coded
-  var gameTypes = [
-    {
-      displayName: 'Swap',
-      name: 'SwappingGame',
-      minPlayers: 2,
-      maxPlayers: 2
-    }
-  ];
+  // var gameTypes = [
+  //   {
+  //     displayName: 'Swap',
+  //     name: 'SwappingGame',
+  //     minPlayers: 2,
+  //     maxPlayers: 2
+  //   }
+  // ];
 
   var codeOptions = {
     chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
@@ -107,12 +109,18 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova', 'btford.
   };
 
   // # of miles from target player must be to acquire it
-  // var targetRadius = 0.05;
-  var targetRadius = 5;
+  var targetRadius = 0.03;
+  // var targetRadius = 5;
+
+  var demo = false;
+  var demoStartDistance = 4;
 
   return {
+    demo: demo,
+    demoStartDistance: demoStartDistance,
     codeOptions: codeOptions,
-    gameTypes: gameTypes,
+    // gameTypes: gameTypes,
     targetRadius: targetRadius,
   };
 });
+//

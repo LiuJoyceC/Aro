@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="row submit-buttons">
-        <input type="submit" ng-click="registerName()" class="button button-dark center submit-buttons">
+        <input type="submit" ng-disabled="!register.name" ng-click="registerName()" class="button button-dark center submit-buttons">
       </div>
     </div>
 
@@ -39,7 +39,7 @@
               <!-- Select whether the game will be public or private -->
               Choose public or private game
             </div>
-            <select ng-init="createdGame.isPrivate=false" ng-model="createdGame.isPrivate">
+            <select ng-model="createdGame.isPrivate">
               <option value="false" ng-selected="true">Public</option>
               <option value="true">Private</option>
             </select>
@@ -53,8 +53,8 @@
         <div class="list">
           <label class="item item-input item-select">
             <div class="input-label">Select game</div>
-            <select ng-init="createdGame.gameTypeIndex=0" name="selectGameType" ng-model="createdGame.gameTypeIndex">
-              <option ng-repeat="gameType in gameTypes" value="{{ $index }}" ng-selected="$first">{{ gameType.displayName }}</option>
+            <select name="selectGameType" ng-model="createdGame.gameType">
+              <option ng-repeat="(gameType, gameInfo) in gamesInfo" value="{{ gameType }}" ng-selected="$first">{{ gameInfo.name }}</option>
             </select>
           </label>
         </div>
@@ -69,7 +69,9 @@
         <div>Select maximum time to wait for players to join. Game will abort if minimum number of players have not joined</div>
         <input type="number" ng-init="5" min="1" ng-model="createdGame.maxWait"> -->
         <div class="create-or-join">
-          <input type="submit" value="Create game!" ng-click="joinGame(true)" class="button button-dark"><span ng-if="joining">Creating game...</span>
+          <input type="submit" value="Create game!" ng-disabled="joining" ng-click="joinGame(true)" class="button button-dark">
+          <div ng-if="joining">Creating game...</div>
+          <div ng-if="game.notExist">Invalid options. Please check the options you have selected and try again.</div>
         </div>
       </div>
 
@@ -80,14 +82,14 @@
         <div class="list">
           <label class="item">
             <div class="input-label">Game Code</div>
-            <input type="text" ng-init="''" ng-model="game.code">
+            <input type="text" ng-init="game.code=''" ng-model="game.code">
           </label>
         </div>
         <div class="create-or-join">
-          <input type="submit" value="Join game!" ng-click="joinGame(false, game.code)" class="button button-dark">
+          <input type="submit" value="Join game!" ng-disabled="joining" ng-click="joinGame(false, game.code)" class="button button-dark">
         </div>
         <div ng-if="joining">Joining...</div>
-        <div ng-if="game.notExist">The code you entered does not match a currently available game. Please enter another code, or join a public game, or create a new game.</div>
+        <div ng-if="game.notExist">The game you are attempting to join is no longer available. Please try joining a different game, or create a new game.</div>
         <!-- Discuss with Joyce this refactor -->
         <div ng-if="!publicGames.noGames">Or select an available public game:</div>
         <!-- <div>Or select an available public game:</div> -->
