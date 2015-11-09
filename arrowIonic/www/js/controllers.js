@@ -45,7 +45,7 @@ angular.module('starter.controllers', [])
       $scope.targetHasBeenUpdated = true;
       $scope.targetName = target.playerName;
       $scope.targetLocation = target.location;
-      console.log('new target is ' + target.playerName);
+      // console.log('new target is ' + target.playerName);
       if (demo) {
         $scope.distance = demoStartDistance;
         var decrementDistance = function() {
@@ -71,9 +71,9 @@ angular.module('starter.controllers', [])
 
   socket.on('playerOut', function(playerName) {
     if (playerName === $rootScope.playerName) {
-      console.log(playerName + ' is out!');
+      // console.log(playerName + ' is out!');
       $rootScope.playerIsOut = $scope.playerIsOut = true;
-      console.log('playerIsOut', $scope.playerIsOut);
+      // console.log('playerIsOut', $scope.playerIsOut);
     }
   });
 
@@ -84,7 +84,6 @@ angular.module('starter.controllers', [])
       $scope.winnerMessage = 'Game over. ' + winnerName + ' wins!'
     }
     setTimeout(function() {
-      $scope.gameInSession = false;
       $scope.targetAcquired = false;
     }, 1000);
   });
@@ -124,7 +123,7 @@ angular.module('starter.controllers', [])
   // will need to test if waiting for deviceready may cause
   // a problem if the server emits 'newTarget' before deviceready
 
-    console.log('deviceready ran');
+    // console.log('deviceready ran');
     var here, there, heading, bearing;
 
     $scope.targetLocation = {};
@@ -159,7 +158,7 @@ angular.module('starter.controllers', [])
           $scope.distance = 0;
           $scope.targetAcquired = true;
           socket.emit('acquiredTarget', $scope.targetName);
-          console.log('acquiredTarget emitted');
+          // console.log('acquiredTarget emitted');
         }
       }
     });
@@ -203,8 +202,8 @@ angular.module('starter.controllers', [])
   };
 
   socket.on('updateLobby', function(newLobby) {
-    console.log('updateLobby received');
-    console.log(newLobby);
+    // console.log('updateLobby received');
+    // console.log(newLobby);
     // completing list first before assiging it
     // to scope variable, so that the user does
     // not visually see list get populated
@@ -223,11 +222,11 @@ angular.module('starter.controllers', [])
 
     $scope.publicGames = publicGames;
     privateGameCodes = privateGames;
-    console.log($scope.publicGames);
+    // console.log($scope.publicGames);
   });
 
   socket.on('gamesInfo', function(gamesInfo) {
-    console.log(gamesInfo);
+    // console.log(gamesInfo);
     $scope.gamesInfo = gamesInfo;
     $scope.createdGame.gameType = Object.keys(gamesInfo)[0];
   });
@@ -241,7 +240,7 @@ angular.module('starter.controllers', [])
   });
 
   socket.on('gameStart', function() {
-    console.log('gameStart triggered');
+    // console.log('gameStart triggered');
     $rootScope.gameInSession = true;
   });
 
@@ -277,7 +276,7 @@ angular.module('starter.controllers', [])
       // checks if already exists
     } else {
       gameID = gameID.toUpperCase();
-      console.log('gameID', gameID);
+      // console.log('gameID', gameID);
       if (!(privateGameCodes[gameID] || $scope.publicGames[gameID])) {
         $scope.joining = false;
         $scope.game.notExist = true;
@@ -294,7 +293,7 @@ angular.module('starter.controllers', [])
           latitude: currentPosition.coords.latitude,
           longitude: currentPosition.coords.longitude
         };
-        console.log('$scope.createdGame', $scope.createdGame);
+        // console.log('$scope.createdGame', $scope.createdGame);
         $scope.playerObj = {
           location: $rootScope.location,
           playerName: $scope.playerName,
