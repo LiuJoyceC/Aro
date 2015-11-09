@@ -51,7 +51,6 @@ angular.module('starter.controllers', [])
         var decrementDistance = function() {
           $scope.distance -= Math.random();
           console.log($scope.distance);
-          // console.log($scope.message);
           if (!$scope.playerIsOut && $scope.distance < options.targetRadius) {
             $scope.distance = 0;
             $scope.targetAcquired = true;
@@ -173,7 +172,6 @@ angular.module('starter.controllers', [])
     $scope.watch = $cordovaDeviceOrientation.watchHeading(orientationOptions).then(
       null,
       function(error) {
-        //$scope.heading = err;
       },
       function(result) {
         heading = ionic.Platform.isIOS() ? result.magneticHeading : result.trueHeading;
