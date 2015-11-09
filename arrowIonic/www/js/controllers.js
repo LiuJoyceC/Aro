@@ -51,6 +51,7 @@ angular.module('starter.controllers', [])
         var decrementDistance = function() {
           $scope.distance -= Math.random();
           console.log($scope.distance);
+          // console.log($scope.message);
           if (!$scope.playerIsOut && $scope.distance < options.targetRadius) {
             $scope.distance = 0;
             $scope.targetAcquired = true;
@@ -84,6 +85,7 @@ angular.module('starter.controllers', [])
       $scope.winnerMessage = 'Game over. ' + winnerName + ' wins!'
     }
     setTimeout(function() {
+      $scope.gameInSession = false;
       $scope.targetAcquired = false;
     }, 1000);
   });
@@ -92,7 +94,6 @@ angular.module('starter.controllers', [])
 
   var displayMessage = function() {
     prevMessage = $scope.message;
-
     if (!$scope.gameInSession) {
       $scope.message = '';
     } else if ($scope.playerIsOut) {
