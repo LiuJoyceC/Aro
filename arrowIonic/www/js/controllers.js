@@ -125,7 +125,16 @@ angular.module('starter.controllers', [])
 
   var demo = options.demo;
   var demoStartDistance = options.demoStartDistance;
-  //var demoDistanceAdd = 0;
+
+  // message
+  // 1.if game has not started or joined: '' or maybe 'Welcome, [playerName]!'
+  // 6.if target not yet received: 'Waiting for a new target...'
+  // 4.when target received: 'New target recieved' for a few seconds
+  // 7.'[#.##] miles to [targetName]' after a few seconds
+  // 8. if NaN: ''
+  // 5.when target location updated: 'Target location updated' for a few seconds
+  // 3.when target acquired: 'Target acquired!' for a few seconds
+  // 2.when player out: 'You're out!'
 
   $rootScope.$watch('hasJoinedGame', function() {
     $scope.hasJoinedGame = $rootScope.hasJoinedGame || ($scope.winnerMessage = false);
@@ -140,7 +149,6 @@ angular.module('starter.controllers', [])
     $scope.playerIsOut = $rootScope.playerIsOut;
   });
   $rootScope.$watch('gameInSession', function() {
-    console.log('gameInSession', $rootScope.gameInSession);
     $scope.gameInSession = $rootScope.gameInSession;
   });
 
@@ -169,6 +177,7 @@ angular.module('starter.controllers', [])
         var decrementDistance = function() {
           $scope.distance -= Math.random();
           console.log($scope.distance);
+          // console.log($scope.message);
           if (!$scope.playerIsOut && $scope.distance < options.targetRadius) {
             $scope.distance = 0;
             $scope.targetAcquired = true;
@@ -202,9 +211,35 @@ angular.module('starter.controllers', [])
       $scope.winnerMessage = 'Game over. ' + winnerName + ' wins!'
     }
     setTimeout(function() {
+      $scope.gameInSession = false;
       $scope.targetAcquired = false;
     }, 1000);
   });
+
+  var displayMessage = function() {
+    if (!$scope.gameInSession) {
+      $scope.message = '';
+    } else if ($scope.playerIsOut) {
+      $scope.message = "You're out!";
+    } else if ($scope.targetAcquired) {
+      $scope.message = 'Target acquired!';
+    } else if ($scope.targetHasBeenUpdated) {
+      $scope.message = 'New target';
+    } else if (!$scope.distance || !$scope.targetName) {
+      $scope.message = 'Waiting for a new target...'
+    } else {
+      $scope.message = $scope.distance + ' miles to target ' + $scope.targetName;
+    }
+  };
+
+  if (demo) {
+    var demoUpdateMessage = function() {
+      displayMessage();
+      console.log($scope.message);
+      setTimeout(demoUpdateMessage, 1000);
+    }
+    demoUpdateMessage();
+  }
 
   document.addEventListener("deviceready", function () {
   // will need to test if waiting for deviceready may cause
@@ -240,6 +275,7 @@ angular.module('starter.controllers', [])
 
       if (!demo) {
         $scope.distance = Number(turf.distance(here, there, 'miles')).toFixed(4);
+        displayMessage();
         if ($scope.distance < options.targetRadius && !$scope.targetAcquired && !$scope.playerIsOut) {
           $scope.distance = 0;
           $scope.targetAcquired = true;
